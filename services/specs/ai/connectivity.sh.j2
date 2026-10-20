@@ -1,6 +1,6 @@
 #!/bin/bash
 # Connectivity test for ai's canonical interface — the gateway-native
-# pref://ai primitive (unitysvc/unitysvc#2659). There is NO seller upstream:
+# ai://preference primitive (unitysvc/unitysvc#2659). There is NO seller upstream:
 # the gateway rewrites /ai/... to the caller's AI preference, from the routing
 # context, exactly as it rewrites an /a/<name> alias, then routes normally.
 #
@@ -11,7 +11,7 @@
 set -o pipefail
 
 {% if local_testing %}
-echo "connectivity ok (gateway-native pref://ai, no upstream)"
+echo "connectivity ok (gateway-native ai://preference, no upstream)"
 {% else %}
 URL="{{ service_base_url }}/chat/completions"
 

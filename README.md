@@ -8,7 +8,7 @@ resolves on its own:
 | ------- | -------- | --------------------- |
 | `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
-| `ai` | `pref://ai` | rewrites `/ai/...` to the caller's AI preference, then routes it |
+| `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -81,16 +81,18 @@ caller's platform notifications plus the external destination set as their
 notification preference (unitysvc/unitysvc#1526, #2063). It is a full spec under
 `services/specs/notify/`, published under the `labs` provider as before.
 
-## AI (`pref://ai`)
+## AI (`ai://preference`)
 
 `ai` answers an OpenAI chat request with the caller's AI preference: a `/p/llm`
-tier or other LLM service by its name (`labs/llm-balanced`), an enrollment
-(BYOK), or an alias (unitysvc/unitysvc#2659). A service is one model, so no
-model is stored beside it. The routing context carries the resolved
+tier or other LLM service by its name (`labs/llm-balanced`), or an alias
+(unitysvc/unitysvc#2659). Services that require enrollment, including `e/<code>`
+enrollments, are refused. A service is one model, so no model is stored beside
+it. The routing context carries the resolved
 preference, and the gateway rewrites `/ai/...` to it the way it rewrites an
 `/a/<name>` alias. With no preference, `/ai` uses `labs/llm-balanced`; a team
 key uses the team's preference, never a member's. `ai` is free; each call is
-billed by the service it resolves to. It is a full spec under
+billed by the service it resolves to. A preference that no longer resolves
+answers 409. It is a full spec under
 `services/specs/ai/`.
 
 ```bash

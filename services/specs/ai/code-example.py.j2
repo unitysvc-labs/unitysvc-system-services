@@ -4,13 +4,13 @@ import sys
 from openai import OpenAI
 
 # Ask your own AI a question through the UnitySVC gateway (ai). /ai answers
-# with whatever you've set as your AI preference (a /p/llm tier, or your own
-# key through an enrollment), so this code never names a provider. Change
+# with whatever you've set as your AI preference (a /p/llm tier or another
+# LLM service), so this code never names a provider. Change
 # the preference, not the code, to switch.
 {% if local_testing %}
-# ai is gateway-native (pref://ai): there is no seller upstream to call in
+# ai is gateway-native (ai://preference): there is no seller upstream to call in
 # local mode, so this branch only confirms wiring.
-print("answered (skipped: gateway-native pref://ai, no upstream)")
+print("answered (skipped: gateway-native ai://preference, no upstream)")
 sys.exit(0)
 {% else %}
 client = OpenAI(

@@ -2,7 +2,7 @@
   "capabilities": [
     "chat"
   ],
-  "description": "`ai` answers an OpenAI chat request with the AI you've chosen as your AI preference: a `/p/llm` tier, or your own key.\n\nThe gateway rewrites `/ai/...` to your preference, the way it rewrites an `/a/<name>` alias, then routes it like any other call, streaming included. The preference can be a `/p/llm` tier, an LLM service from the marketplace, one of your enrollments (`e/<code>`, including BYOK), or one of your aliases, named by the service alone: a service is one model. With none set, `/ai` uses `labs/llm-balanced` (`/p/llm`, `model=\"balanced\"`). A team key uses the team's own preference, or that default billed to the team, never a member's personal one. `ai` itself is free: each call is billed by the service it resolves to, at that service's own price.\n\nPoint any OpenAI-compatible client at `/ai` with your UnitySVC key, and set your AI under **Your AI** in Preferences (or `PUT /v1/preferences/ai`). Switch provider or model there, without changing the app.",
+  "description": "`ai` answers an OpenAI chat request with the AI you've chosen as your AI preference: a `/p/llm` tier or another LLM service anyone on your account can call.\n\nThe gateway rewrites `/ai/...` to your preference, the way it rewrites an `/a/<name>` alias, then routes it like any other call, streaming included. The preference names one service: a `/p/llm` tier, an LLM service from the marketplace, or one of your aliases. A service is one model, so the app never picks the model. Services that require enrollment are refused, including `e/<code>` enrollments and services (or aliases pointing at them) that can only be reached through an enrollment, because an enrollment brings its own parameters and model choices. With none set, `/ai` uses `labs/llm-balanced` (`/p/llm`, `model=\"balanced\"`). A team key uses the team's own preference, or that default billed to the team, never a member's personal one. If the saved preference no longer resolves (a deleted alias, or a service that now requires enrollment), `/ai` answers 409 instead of silently using the default. `ai` itself is free: each call is billed by the service it resolves to, at that service's own price.\n\nPoint any OpenAI-compatible client at `/ai` with your UnitySVC key, and set your AI under **Your AI** in Preferences (or `PUT /v1/preferences/ai`). Switch provider or model there, without changing the app.",
   "details": {
     "context_length": null,
     "input_formats": [
@@ -23,13 +23,13 @@
   },
   "service_type": "llm",
   "status": "ready",
-  "summary": "Send an OpenAI chat request to `/ai` and UnitySVC answers it with the AI you've chosen — a `/p/llm` tier or your own key — with no service or model to hard-code.",
+  "summary": "Send an OpenAI chat request to `/ai` and UnitySVC answers it with the AI you've chosen — a `/p/llm` tier or another LLM service — with no service or model to hard-code.",
   "time_created": "2026-10-20T00:00:00Z",
   "upstream_access_config": {
     "default": {
       "access_method": "http",
       "auth_mode": "forward",
-      "base_url": "pref://ai",
+      "base_url": "ai://preference",
       "is_active": true,
       "is_primary": true,
       "payload_format": "openai"
