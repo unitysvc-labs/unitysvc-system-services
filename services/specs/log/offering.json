@@ -1,0 +1,26 @@
+{
+  "capabilities": [
+    "record-activity"
+  ],
+  "description": "`log` records activity entries against one of your enrollments, so you and the service's provider can see what a scheduled job or app did.\n\nThe gateway forwards a `POST /log` to the platform, which checks your key, resolves `X-UnitySVC-Enrollment` to one of your enrollments (shared, or your own), and stores each entry with its identity stamped from the key and the enrollment, never from the body. A request carries one entry or an array of up to 100: `level` (`debug`, `info`, `warn` or `error`), `message` (up to 1 KB), optional `attributes` (up to 4 KB of JSON) and `occurred_at`. An oversized entry is rejected with 413, never truncated, and one bad entry rejects the whole batch. Entries are kept for 90 days. `log` is free: nothing on this path is metered or billed.\n\nPOST JSON to `/log` with your UnitySVC key and the enrollment's code in `X-UnitySVC-Enrollment`, optionally with `X-UnitySVC-Run-Id` to group one run's entries. Read them back under **Activity** on the Enrollments page.",
+  "details": {
+    "input_formats": [
+      "any"
+    ]
+  },
+  "logo": "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets/Notebook/SVG/ic_fluent_notebook_32_color.svg",
+  "name": "log",
+  "service_type": "proxy",
+  "status": "ready",
+  "summary": "POST log entries to `/log` with an enrollment's code, and UnitySVC records them in that enrollment's activity log. Free.",
+  "time_created": "2026-10-20T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "log://enrollment",
+      "is_active": true,
+      "is_primary": true
+    }
+  }
+}
