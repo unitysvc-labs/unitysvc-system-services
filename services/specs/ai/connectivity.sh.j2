@@ -4,9 +4,10 @@
 # the gateway rewrites /ai/... to the caller's AI preference, from the routing
 # context, exactly as it rewrites an /a/<name> alias, then routes normally.
 #
-# This doc's meta.preference.ai points the OPS test identity at /p/llm "fast"
-# for the duration of the script, so a passing run proves the rewrite reached
-# a real model and got a chat completion back, not just a 2xx from the gateway.
+# This doc's meta.preference.ai points the OPS test key's account at
+# labs/llm-fast (/p/llm, model "fast") for the duration of the script, so a
+# passing run proves the rewrite reached a real model and got a chat
+# completion back, not just a 2xx from the gateway.
 set -o pipefail
 
 {% if local_testing %}

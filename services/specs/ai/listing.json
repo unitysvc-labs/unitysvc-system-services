@@ -13,10 +13,7 @@
           "bytes_out": 1
         },
         "preference": {
-          "ai": {
-            "model": "fast",
-            "service": "p/llm"
-          }
+          "ai": "labs/llm-fast"
         }
       },
       "mime_type": "bash"
@@ -32,10 +29,7 @@
           "bytes_out": 1
         },
         "preference": {
-          "ai": {
-            "model": "fast",
-            "service": "p/llm"
-          }
+          "ai": "labs/llm-fast"
         },
         "requirements": [
           "openai"

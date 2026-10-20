@@ -19,7 +19,8 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    # Used only when your preference doesn't pin a model.
+    # Required by the OpenAI client. /ai routes by your preference, which
+    # already names the model.
     model="fast",
     messages=[{"role": "user", "content": "In one sentence, what is UnitySVC?"}],
     max_tokens=64,

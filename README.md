@@ -84,10 +84,11 @@ notification preference (unitysvc/unitysvc#1526, #2063). It is a full spec under
 ## AI (`pref://ai`)
 
 `ai` answers an OpenAI chat request with the caller's AI preference: a `/p/llm`
-tier, an LLM service, an enrollment (BYOK), or an alias, optionally pinned to a
-model (unitysvc/unitysvc#2659). The routing context carries the resolved
+tier or other LLM service by its name (`labs/llm-balanced`), an enrollment
+(BYOK), or an alias (unitysvc/unitysvc#2659). A service is one model, so no
+model is stored beside it. The routing context carries the resolved
 preference, and the gateway rewrites `/ai/...` to it the way it rewrites an
-`/a/<name>` alias. With no preference, `/ai` uses `/p/llm` `balanced`; a team
+`/a/<name>` alias. With no preference, `/ai` uses `labs/llm-balanced`; a team
 key uses the team's preference, never a member's. `ai` is free; each call is
 billed by the service it resolves to. It is a full spec under
 `services/specs/ai/`.
