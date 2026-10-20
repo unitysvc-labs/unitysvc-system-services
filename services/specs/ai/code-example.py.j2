@@ -1,0 +1,28 @@
+import os
+import sys
+
+from openai import OpenAI
+
+# Ask your own AI a question through the UnitySVC gateway (ai). /ai answers
+# with whatever you've set as your AI preference (a /p/llm tier, or your own
+# key through an enrollment), so this code never names a provider. Change
+# the preference, not the code, to switch.
+{% if local_testing %}
+# ai is gateway-native (pref://ai): there is no seller upstream to call in
+# local mode, so this branch only confirms wiring.
+print("answered (skipped: gateway-native pref://ai, no upstream)")
+sys.exit(0)
+{% else %}
+client = OpenAI(
+    base_url="{{ service_base_url }}",
+    api_key=os.environ.get("UNITYSVC_API_KEY", ""),
+)
+
+response = client.chat.completions.create(
+    # Used only when your preference doesn't pin a model.
+    model="fast",
+    messages=[{"role": "user", "content": "In one sentence, what is UnitySVC?"}],
+    max_tokens=64,
+)
+print(response.choices[0].message.content)
+{% endif %}

@@ -1,4 +1,8 @@
-# CLAUDE.md — unitysvc-services-resp
+# CLAUDE.md — unitysvc-system-services
+
+System services: `resp*` (`resp://`), `notify` (`notify://user`) and `ai`
+(`pref://ai`). None has a seller upstream; the gateway resolves each reserved
+scheme itself. See README.md.
 
 This repository holds **UnitySVC service data** — the declarative files (plus
 tests) that define services published to the UnitySVC gateway/marketplace. It is

@@ -1,11 +1,22 @@
-# unitysvc-services-resp
+# unitysvc-system-services
 
-Direct-response (`resp://`) catalog for UnitySVC. These services return a fixed
-HTTP status code directly from the gateway — **no real upstream is ever
-contacted.** They are the gateway's null/sink targets and the test fixtures for
-the routing primitives.
+UnitySVC's **system services**: services the platform answers itself, with no
+seller upstream. Each is backed by a reserved upstream scheme that the gateway
+resolves on its own:
 
-## Why this exists
+| Service | Upstream | What the gateway does |
+| ------- | -------- | --------------------- |
+| `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
+| `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
+| `ai` | `pref://ai` | rewrites `/ai/...` to the caller's AI preference, then routes it |
+
+This repository was `unitysvc-services-resp`; `notify` moved here from
+`unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
+delivery services.
+
+## Direct response (`resp://`)
+
+### Why this exists
 
 Every UnitySVC service requires an `upstream_access_interface`, so historically
 there was no way to model a "do nothing, just close the loop" endpoint. The
@@ -14,7 +25,7 @@ gap: `base_url = "resp://200"` is a valid, resolvable upstream that means
 "the gateway itself produces a 200 response." The synthetic response still runs
 through the normal pipeline, so it composes with the wrapper primitives.
 
-## Services
+### Services
 
 | Service   | Returns | Typical use                                   |
 | --------- | ------- | --------------------------------------------- |
@@ -25,7 +36,7 @@ through the normal pipeline, so it composes with the wrapper primitives.
 | `resp500` | 500     | failing primary for failover testing          |
 | `resp503` | 503     | failing primary for failover testing          |
 
-## How they are used
+### How they are used
 
 Reach a direct-response service like any other gateway service, optionally
 wrapped by a primitive:
@@ -63,9 +74,36 @@ guaranteed-failing `/f/` primary, and `resp200` makes a `/t/` sink. A bare
 being wired up, and as a lightweight health check that exercises the full
 auth + routing path without touching any upstream.
 
+## Notify (`notify://user`)
+
+`notify` takes a `msg` envelope (HTTP) or an email (SMTP) and delivers it to the
+caller's platform notifications plus the external destination set as their
+notification preference (unitysvc/unitysvc#1526, #2063). It is a full spec under
+`services/specs/notify/`, published under the `labs` provider as before.
+
+## AI (`pref://ai`)
+
+`ai` answers an OpenAI chat request with the caller's AI preference: a `/p/llm`
+tier, an LLM service, an enrollment (BYOK), or an alias, optionally pinned to a
+model (unitysvc/unitysvc#2659). The routing context carries the resolved
+preference, and the gateway rewrites `/ai/...` to it the way it rewrites an
+`/a/<name>` alias. With no preference, `/ai` uses `/p/llm` `balanced`; a team
+key uses the team's preference, never a member's. `ai` is free; each call is
+billed by the service it resolves to. It is a full spec under
+`services/specs/ai/`.
+
+```bash
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"model":"fast","messages":[{"role":"user","content":"Hi"}]}' \
+     "$API_GATEWAY_BASE_URL/ai/chat/completions"
+```
+
 ## Repository layout
 
-The six services are nearly identical — they differ only in an HTTP `status`, a
+`notify` and `ai` are full specs (`services/specs/<name>/` with `offering.json`,
+`listing.json`, `provider.json` and their docs). The six `resp` services are
+nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered
 through one shared template, not six copies of `offering.json` + `listing.json`
 (see [unitysvc-sellers#90](https://github.com/unitysvc/unitysvc-sellers/pull/90)).

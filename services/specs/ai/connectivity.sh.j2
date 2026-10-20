@@ -1,0 +1,39 @@
+#!/bin/bash
+# Connectivity test for ai's canonical interface — the gateway-native
+# pref://ai primitive (unitysvc/unitysvc#2659). There is NO seller upstream:
+# the gateway rewrites /ai/... to the caller's AI preference, from the routing
+# context, exactly as it rewrites an /a/<name> alias, then routes normally.
+#
+# This doc's meta.preference.ai points the OPS test identity at /p/llm "fast"
+# for the duration of the script, so a passing run proves the rewrite reached
+# a real model and got a chat completion back, not just a 2xx from the gateway.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (gateway-native pref://ai, no upstream)"
+{% else %}
+URL="{{ service_base_url }}/chat/completions"
+
+response=$(curl -sS --max-time 60 \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -d '{"model":"fast","messages":[{"role":"user","content":"Reply with the single word OK."}],"max_tokens":16}' \
+    -w "\n%{http_code}" \
+    "$URL" 2>/dev/null)
+status="${response##*$'\n'}"
+body="${response%$'\n'*}"
+
+case "$status" in
+  2??) ;;
+  000) echo "connectivity failed: could not connect to $URL" >&2; exit 1 ;;
+  *)   echo "connectivity failed: HTTP $status from $URL: ${body}" >&2; exit 1 ;;
+esac
+
+if printf '%s' "$body" | grep -q '"choices"'; then
+    echo "connectivity ok — /ai answered with a chat completion"
+    exit 0
+fi
+echo "connectivity failed: HTTP $status from $URL but no chat completion in the body: ${body}" >&2
+exit 1
+{% endif %}
