@@ -106,11 +106,13 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
 ## Log (`log://enrollment`)
 
 `log` records activity entries against one of the caller's enrollments
-(unitysvc/unitysvc#2670). The gateway forwards `POST /log` to the platform's
-log sink, which checks the key, resolves `X-UnitySVC-Enrollment` to one of the
-caller's enrollments, and stamps identity from the key and the enrollment,
-never from the body. One entry or up to 100 per request; entries are kept for
-90 days; logging is free. It is a full spec under `services/specs/log/`.
+(unitysvc/unitysvc#2670, unitysvc/apisix-gateways#67). The gateway handles
+`POST /log` itself: it checks the key, resolves `X-UnitySVC-Enrollment` to one
+of the caller's active enrollments, stamps identity from the key and the
+enrollment (never from the body) and the receipt time, and writes the entries
+to the activity log via Kafka. One entry or up to 100 per request; `202` means
+stored, `503` means storage was unavailable, and an unknown, foreign, paused or
+cancelled enrollment is `404`. Entries are kept for 90 days; logging is free. It is a full spec under `services/specs/log/`.
 
 ```bash
 curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \

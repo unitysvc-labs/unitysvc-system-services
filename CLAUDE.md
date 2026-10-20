@@ -2,8 +2,7 @@
 
 System services: `resp*` (`resp://`), `notify` (`notify://user`), `ai`
 (`ai://preference`) and `log` (`log://enrollment`). None has a seller upstream;
-the gateway resolves each reserved
-scheme itself. See README.md.
+the gateway resolves each reserved scheme itself. See README.md.
 
 This repository holds **UnitySVC service data** — the declarative files (plus
 tests) that define services published to the UnitySVC gateway/marketplace. It is

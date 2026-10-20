@@ -24,8 +24,6 @@ response = httpx.post(
     headers={
         "Authorization": f"Bearer {os.environ.get('UNITYSVC_API_KEY', '')}",
         "X-UnitySVC-Enrollment": enrollment,
-        # Optional: groups the entries of one run.
-        "X-UnitySVC-Run-Id": "example-run",
     },
     json=[
         {"level": "info", "message": "Checked 214 listings, 3 matched",

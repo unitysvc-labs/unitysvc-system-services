@@ -1,41 +1,48 @@
 #!/bin/bash
 # Connectivity test for log's canonical interface — the gateway-native
-# log://enrollment primitive (unitysvc/unitysvc#2670). There is NO seller
-# upstream: the gateway forwards the request to the platform's log sink
-# (POST /v1/internal/log), which records it against one of the caller's
-# enrollments.
+# log://enrollment primitive (unitysvc/unitysvc#2670, apisix-gateways#67).
+# There is NO seller upstream: the gateway validates the entries, stamps
+# identity from the key's routing context and the enrollment, and writes them
+# to the enrollment's activity log itself (via Kafka).
 #
 # The test identity has no enrollment that is "its own" to log for, and a
 # test should not write to a real activity log anyway. So it posts a valid
-# entry WITHOUT X-UnitySVC-Enrollment and expects the sink's own 400 naming
-# that header. Only the platform's handler returns it, after the gateway
-# routed /log to log://enrollment and the key was accepted for a customer, so
-# a pass proves the whole path while writing nothing. A gateway 404 (no route)
-# or 401 (key rejected) fails.
+# entry for a made-up enrollment code and expects the gateway's
+# 404 {"error":"Enrollment not found"}. The gateway only answers that after it
+# routed /log to log://enrollment, validated the body and loaded the key's
+# account, so a pass proves the whole path while writing nothing. A 401
+# (key rejected), a route 404 (no "Enrollment not found" in the body) or any
+# other status fails.
 set -o pipefail
 
 {% if local_testing %}
 echo "connectivity ok (gateway-native log://enrollment, no upstream)"
 {% else %}
 URL="{{ service_base_url }}"
+# A well-formed code no account holds (Crockford alphabet, so it normalizes
+# to itself).
+PROBE_CODE="ZZZZZZZZZZ"
 
 response=$(curl -sS --max-time 10 \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -H "X-UnitySVC-Enrollment: ${PROBE_CODE}" \
     -d '{"level":"info","message":"log connectivity probe"}' \
     -w "\n%{http_code}" \
     "$URL" 2>/dev/null)
 status="${response##*$'\n'}"
 body="${response%$'\n'*}"
 
-if [ "$status" = "400" ] && printf '%s' "$body" | grep -q "X-UnitySVC-Enrollment"; then
-    echo "connectivity ok — /log reached the platform's log sink (it asked for X-UnitySVC-Enrollment)"
+if [ "$status" = "404" ] && printf '%s' "$body" | grep -q "Enrollment not found"; then
+    echo "connectivity ok — /log reached the gateway's log stage and loaded the key's account (unknown enrollment rejected)"
     exit 0
 fi
 case "$status" in
   000) echo "connectivity failed: could not connect to $URL" >&2 ;;
-  *)   echo "connectivity failed: expected the sink's 400 for a missing X-UnitySVC-Enrollment, got HTTP $status from $URL: ${body}" >&2 ;;
+  401) echo "connectivity failed: the key was rejected (HTTP 401) by $URL: ${body}" >&2 ;;
+  404) echo "connectivity failed: HTTP 404 without 'Enrollment not found' — /log did not reach the log stage (no route?) at $URL: ${body}" >&2 ;;
+  *)   echo "connectivity failed: expected 404 Enrollment not found for a made-up code, got HTTP $status from $URL: ${body}" >&2 ;;
 esac
 exit 1
 {% endif %}

@@ -4,7 +4,7 @@
   "documents": {
     "Connectivity test": {
       "category": "connectivity_test",
-      "description": "POST an entry through /log without an enrollment and expect the platform's own 400 asking for X-UnitySVC-Enrollment: proves the gateway reaches the log sink and the key is checked, without writing anything",
+      "description": "POST an entry through /log for a made-up enrollment code and expect the gateway's 404 Enrollment not found: proves /log routes to log://enrollment and the key's account was loaded, without writing anything",
       "file_path": "connectivity.sh.j2",
       "is_active": true,
       "is_public": true,
