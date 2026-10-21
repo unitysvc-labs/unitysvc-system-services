@@ -9,6 +9,7 @@ resolves on its own:
 | `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
+| `log` | `log://enrollment` | records entries in one of the caller's enrollments' activity log |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -102,9 +103,28 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
      "$API_GATEWAY_BASE_URL/ai/chat/completions"
 ```
 
+## Log (`log://enrollment`)
+
+`log` records activity entries against one of the caller's enrollments
+(unitysvc/unitysvc#2670, unitysvc/apisix-gateways#67). The gateway handles
+`POST /log` itself: it checks the key, resolves `X-UnitySVC-Enrollment` to one
+of the caller's active enrollments, stamps identity from the key and the
+enrollment (never from the body) and the receipt time, and writes the entries
+to the activity log via Kafka. One entry or up to 100 per request; `202` means
+stored, `503` means storage was unavailable, and an unknown, foreign, paused or
+cancelled enrollment is `404`. Entries are kept for 90 days; logging is free. It is a full spec under `services/specs/log/`.
+
+```bash
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
+     -H "X-UnitySVC-Enrollment: AB3D9K" \
+     -H "Content-Type: application/json" \
+     -d '{"level":"info","message":"Checked 214 listings, 3 matched"}' \
+     "$API_GATEWAY_BASE_URL/log"
+```
+
 ## Repository layout
 
-`notify` and `ai` are full specs (`services/specs/<name>/` with `offering.json`,
+`notify`, `ai` and `log` are full specs (`services/specs/<name>/` with `offering.json`,
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered

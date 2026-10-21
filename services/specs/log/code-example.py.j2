@@ -1,0 +1,36 @@
+import os
+import sys
+
+import httpx
+
+# Record entries in one of your enrollments' activity log through the
+# UnitySVC gateway (log). Set UNITYSVC_ENROLLMENT to the enrollment's code
+# (shown on the Enrollments page); read the entries back under its Activity.
+# Logging is free.
+{% if local_testing %}
+# log is gateway-native (log://enrollment): there is no seller upstream to
+# call in local mode, so this branch only confirms wiring.
+print("logged (skipped: gateway-native log://enrollment, no upstream)")
+sys.exit(0)
+{% else %}
+enrollment = os.environ.get("UNITYSVC_ENROLLMENT")
+if not enrollment:
+    # The example needs one of *your* enrollments to log against.
+    print("logged (skipped: set UNITYSVC_ENROLLMENT to one of your enrollment codes)")
+    sys.exit(0)
+
+response = httpx.post(
+    "{{ service_base_url }}",
+    headers={
+        "Authorization": f"Bearer {os.environ.get('UNITYSVC_API_KEY', '')}",
+        "X-UnitySVC-Enrollment": enrollment,
+    },
+    json=[
+        {"level": "info", "message": "Checked 214 listings, 3 matched",
+         "attributes": {"checked": 214, "matched": 3}},
+        {"level": "warn", "message": "One listing had no price"},
+    ],
+)
+response.raise_for_status()
+print(f"logged {response.json()['accepted']} entries (HTTP {response.status_code})")
+{% endif %}
