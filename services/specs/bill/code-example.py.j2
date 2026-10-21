@@ -1,0 +1,45 @@
+import os
+import sys
+
+import httpx
+
+# Report a charge for one of a customer's enrollments through the UnitySVC
+# gateway (bill). Set UNITYSVC_ENROLLMENT to the enrollment's code. The charge
+# bills only after your registered billing URL (PUT /v1/seller/billing/)
+# answers the signed charge.received call with
+# {"ok": true, "idempotency_key": <the same key>}. It is priced as `units` of
+# the enrollment's own service. Retrying with the same Idempotency-Key never
+# bills twice.
+{% if local_testing %}
+# bill is a gateway front door (bill://enrollment): there is no seller
+# upstream to call in local mode, so this branch only confirms wiring.
+print("billed (skipped: bill://enrollment front door, no upstream)")
+sys.exit(0)
+{% else %}
+enrollment = os.environ.get("UNITYSVC_ENROLLMENT")
+if not enrollment:
+    print("billed (skipped: set UNITYSVC_ENROLLMENT to an enrollment that accepts charges)")
+    sys.exit(0)
+
+response = httpx.post(
+    "{{ service_base_url }}",
+    headers={
+        "Authorization": f"Bearer {os.environ.get('UNITYSVC_API_KEY', '')}",
+        "X-UnitySVC-Enrollment": enrollment,
+        # From your own records, so a retry after a timeout bills once.
+        "Idempotency-Key": "run-6f1c",
+    },
+    json={
+        "units": 3,
+        "description": "Run 6f1c: checked 214 listings",
+        "details": {"listings": 214, "matched": 3},
+    },
+    timeout=15,
+)
+if response.status_code == 424:
+    print(f"not billed: {response.json().get('detail')}")
+    sys.exit(1)
+response.raise_for_status()
+charge = response.json()
+print(f"billed {charge['units']} units (charge {charge['charge_id']}, replay={charge['replay']})")
+{% endif %}

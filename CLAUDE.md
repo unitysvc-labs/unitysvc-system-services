@@ -1,7 +1,7 @@
 # CLAUDE.md — unitysvc-system-services
 
 System services: `resp*` (`resp://`), `notify` (`notify://user`), `ai`
-(`ai://preference`) and `log` (`log://enrollment`). None has a seller upstream;
+(`ai://preference`), `log` (`log://enrollment`) and `bill` (`bill://enrollment`). None has a seller upstream;
 the gateway resolves each reserved scheme itself. See README.md.
 
 This repository holds **UnitySVC service data** — the declarative files (plus

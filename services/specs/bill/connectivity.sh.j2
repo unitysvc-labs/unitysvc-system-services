@@ -1,0 +1,47 @@
+#!/bin/bash
+# Connectivity test for bill's canonical interface — the bill://enrollment
+# front door (unitysvc/unitysvc#2682). There is NO seller upstream: the
+# gateway forwards the charge to the platform, which resolves the enrollment,
+# confirms the charge with the seller's registered billing URL, and bills it
+# against the enrollment's own service.
+#
+# A test must never record or bill a real charge, and the test identity has no
+# enrollment that accepts charges. So it posts a charge for a made-up
+# enrollment code and expects the platform's 404 "Enrollment not found". The
+# platform answers that only after the gateway routed /bill to bill://enrollment
+# and forwarded the key, and before any charge row is written or any seller is
+# called, so a pass proves the route while recording nothing. A 401 (key
+# rejected), a route 404 (no "Enrollment not found" in the body) or any other
+# status fails.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (bill://enrollment front door, no upstream)"
+{% else %}
+URL="{{ service_base_url }}"
+# A well-formed code no account holds (Crockford alphabet, so it normalizes
+# to itself).
+PROBE_CODE="ZZZZZZZZZZ"
+
+response=$(curl -sS --max-time 10 \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -H "X-UnitySVC-Enrollment: ${PROBE_CODE}" \
+    -H "Idempotency-Key: connectivity-probe" \
+    -d '{"units":0,"description":"bill connectivity probe"}' \
+    -w "\n%{http_code}" \
+    "$URL" 2>/dev/null)
+status="${response##*$'\n'}"
+body="${response%$'\n'*}"
+
+if [ "$status" = "404" ] && printf '%s' "$body" | grep -q "Enrollment not found"; then
+    echo "connectivity ok — /bill reached the billing service with the key (unknown enrollment rejected, nothing recorded)"
+    exit 0
+fi
+case "$status" in
+  000) echo "connectivity failed: could not connect to $URL" >&2 ;;
+  *)   echo "connectivity failed: expected 404 Enrollment not found for an unknown enrollment, got HTTP $status from $URL: ${body}" >&2 ;;
+esac
+exit 1
+{% endif %}

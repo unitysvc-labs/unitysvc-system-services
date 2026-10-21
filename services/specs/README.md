@@ -3,6 +3,7 @@
 - `notify/` — full spec; `notify://user` delivers to the caller's notification preference.
 - `ai/` — full spec; `ai://preference` rewrites `/ai/...` to the caller's AI preference.
 - `log/` — full spec; `log://enrollment` records entries in one of the caller's enrollments' activity log.
+- `bill/` — full spec; `bill://enrollment` records a seller-confirmed charge for one of the caller's enrollments.
 - `resp*.json` — param files rendered through `../templates/resp/`, described below.
 
 ## Direct-response (`resp://`) services
