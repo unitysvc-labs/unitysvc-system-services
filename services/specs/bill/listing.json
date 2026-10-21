@@ -1,0 +1,41 @@
+{
+  "currency": "USD",
+  "display_name": "Bill",
+  "documents": {
+    "Connectivity test": {
+      "category": "connectivity_test",
+      "description": "POST a charge for a made-up enrollment code and expect the platform's 404 Enrollment not found: proves the gateway reaches the billing service and the key is checked, without recording or billing anything",
+      "file_path": "connectivity.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "mime_type": "bash"
+    },
+    "Python code example": {
+      "category": "code_example",
+      "description": "Python (httpx) example: report a charge for one of a customer's enrollments",
+      "file_path": "code-example.py.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "requirements": [
+          "httpx"
+        ]
+      },
+      "mime_type": "python"
+    }
+  },
+  "list_price": {
+    "description": "Free | each charge is priced by the enrollment's own service",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "bill",
+  "status": "ready",
+  "time_created": "2026-10-21T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "http",
+      "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
+    }
+  }
+}

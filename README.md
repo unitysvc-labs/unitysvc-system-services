@@ -10,6 +10,7 @@ resolves on its own:
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
 | `log` | `log://enrollment` | records entries in one of the caller's enrollments' activity log |
+| `bill` | `bill://enrollment` | records a seller-confirmed charge for an enrollment, billed at that service's price |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -122,9 +123,34 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
      "$API_GATEWAY_BASE_URL/log"
 ```
 
+## Bill (`bill://enrollment`)
+
+`bill` records a charge for work delivered outside the gateway, against one of
+the customer's enrollments (unitysvc/unitysvc#2682). The gateway forwards
+`POST /bill` to the platform, which:
+
+- resolves `X-UnitySVC-Enrollment` to an active enrollment the key can see;
+- checks the terms the enrollment's listing declares
+  (`service_options.bill.max_units_per_charge`);
+- confirms the charge with the billing URL the **seller registered**
+  (`/v1/seller/billing`), never a URL from the request.
+
+The charge bills as `units` of the enrollment's own service, at that service's
+price, and is paid to its seller. `Idempotency-Key` makes retries bill once.
+`bill` itself is free. It is a full spec under `services/specs/bill/`.
+
+```bash
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
+     -H "X-UnitySVC-Enrollment: AB3D9K" \
+     -H "Idempotency-Key: run-6f1c" \
+     -H "Content-Type: application/json" \
+     -d '{"units":3,"description":"Run 6f1c"}' \
+     "$API_GATEWAY_BASE_URL/bill"
+```
+
 ## Repository layout
 
-`notify`, `ai` and `log` are full specs (`services/specs/<name>/` with `offering.json`,
+`notify`, `ai`, `log` and `bill` are full specs (`services/specs/<name>/` with `offering.json`,
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered

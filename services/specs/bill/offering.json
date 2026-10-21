@@ -1,0 +1,26 @@
+{
+  "capabilities": [
+    "record-charge"
+  ],
+  "description": "`bill` records a charge for work a seller delivered outside the gateway, against one of the customer's enrollments, and bills it like any other call.\n\nThe gateway forwards `POST /bill` to the platform, which resolves `X-UnitySVC-Enrollment` to an active enrollment the key can see and checks the terms the enrollment's listing declares (`service_options.bill.max_units_per_charge`). It then confirms the charge with the billing URL the seller registered on its account, never a URL from the request: only a signed confirmation that echoes the charge's `Idempotency-Key` lets it bill. The charge is billed as `units` of the enrollment's own service, at that service's own price, and paid to its seller. The same `Idempotency-Key` never bills twice, and changed content under a used key is refused. An unknown, foreign, paused or cancelled enrollment answers 404, and an unconfirmed charge answers 424 and bills nothing. `bill` itself is free: the charge is priced by the enrollment's service.\n\nPOST JSON to `/bill` (`{\"units\": N, \"description\": …}`) with the customer's key, the enrollment's code in `X-UnitySVC-Enrollment`, and an `Idempotency-Key` from your own records. Register billing URLs and rotate the signing secret under `/v1/seller/billing`.",
+  "details": {
+    "input_formats": [
+      "any"
+    ]
+  },
+  "logo": "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets/Receipt/SVG/ic_fluent_receipt_32_color.svg",
+  "name": "bill",
+  "service_type": "proxy",
+  "status": "ready",
+  "summary": "POST a charge to `/bill` for one of a customer's enrollments; once the seller confirms it, UnitySVC bills it at the enrollment's service price.",
+  "time_created": "2026-10-21T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "bill://enrollment",
+      "is_active": true,
+      "is_primary": true
+    }
+  }
+}
