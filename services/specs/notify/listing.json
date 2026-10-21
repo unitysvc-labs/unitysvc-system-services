@@ -1,0 +1,97 @@
+{
+  "currency": "USD",
+  "display_name": "Notify Me",
+  "documents": {
+    "Connectivity test (HTTP)": {
+      "category": "connectivity_test",
+      "description": "POST the msg envelope through the canonical interface and expect 2xx, then confirm delivery landed at the configured destination",
+      "file_path": "connectivity-http.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        },
+        "preference": {
+          "notification-destination": "http-to-sink"
+        }
+      },
+      "mime_type": "bash"
+    },
+    "Connectivity test (SMTP)": {
+      "category": "connectivity_test",
+      "description": "Submit a message over SMTP through the smtp_gateway interface and expect the transaction to complete, then confirm delivery landed at the configured destination",
+      "file_path": "connectivity-smtp.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        },
+        "preference": {
+          "notification-destination": "http-to-sink"
+        }
+      },
+      "mime_type": "bash"
+    },
+    "Default request body": {
+      "$doc_preset": "msg_request_template"
+    },
+    "Python code example (HTTP)": {
+      "category": "code_example",
+      "description": "Python (httpx) example — send yourself a notification via the msg envelope",
+      "file_path": "code-example-http.py.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        },
+        "preference": {
+          "notification-destination": "http-to-sink"
+        },
+        "requirements": [
+          "httpx"
+        ]
+      },
+      "mime_type": "python"
+    },
+    "SMTP code example": {
+      "category": "code_example",
+      "description": "Send yourself a notification by submitting an email over SMTP",
+      "file_path": "code-example-smtp.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        },
+        "preference": {
+          "notification-destination": "http-to-sink"
+        }
+      },
+      "mime_type": "bash"
+    }
+  },
+  "list_price": {
+    "description": "Free | delivery to any external destination you've configured is billed by that destination's own listing, if it has a cost",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "notify",
+  "status": "ready",
+  "time_created": "2026-09-06T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "http",
+      "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
+    },
+    "smtp_gateway": {
+      "access_method": "smtp",
+      "base_url": "${SMTP_GATEWAY_BASE_URL}",
+      "routing_key": {
+        "username": "notify"
+      }
+    }
+  }
+}

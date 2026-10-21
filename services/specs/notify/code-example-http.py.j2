@@ -1,0 +1,36 @@
+import os
+import sys
+
+import httpx
+
+# Send yourself a notification through the UnitySVC gateway (notify).
+# POST the unified message envelope; the platform delivers it in-app, by
+# email, and through whatever external destination you've configured via
+# PUT /v1/users/me/notification-destination — no recipient or channel to
+# specify.
+{% if local_testing %}
+# notify is gateway-native (notify://user): there is no seller upstream to
+# call in local mode, so this branch only confirms wiring.
+print("sent (skipped: gateway-native notify://user, no upstream)")
+sys.exit(0)
+{% else %}
+# This example is for notify's canonical (HTTP) interface only -- see
+# code-example-smtp.sh.j2 for the smtp_gateway interface. Skip cleanly when
+# rendered against that one rather than failing on an unsupported scheme.
+if "{{ service_base_url }}".startswith(("smtp://", "smtps://")):
+    print("sent (skipped: not applicable to the smtp_gateway interface)")
+    sys.exit(0)
+
+response = httpx.post(
+    "{{ service_base_url }}",
+    headers={"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {},
+    json={
+        "title": "UnitySVC test notification",
+        "body": "Test message sent by the notify code example. No action needed.",
+        "type": "warning",
+        "format": "text",
+    },
+)
+response.raise_for_status()
+print(f"sent (HTTP {response.status_code})")
+{% endif %}

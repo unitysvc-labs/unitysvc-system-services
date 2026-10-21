@@ -1,0 +1,57 @@
+#!/bin/bash
+# Connectivity test for notify's canonical (HTTP) access interface — the
+# gateway-native notify://user primitive (unitysvc#1526). There is NO seller
+# upstream: the gateway short-circuits the request and the platform backend
+# queues delivery.
+#
+# Not just "did the gateway answer 2xx" (which a broken courier hookup can
+# still return — the envelope is recorded in-app either way) but "did the
+# configured external destination actually receive it": this doc's
+# meta.preference.notification-destination (unitysvc#2074) points the OPS
+# test identity at http-to-sink for the duration of this script, so the
+# envelope posted here — carrying a unique marker — gets forwarded verbatim
+# (backend/app/workers/notification_tasks.py::_send_notification_via_api_gateway)
+# to https://sink.unitysvc.dev, where we poll for it.
+#
+# notify's smtp_gateway interface shares this same document set structurally
+# (see connectivity-smtp.sh.j2) but is a separate file, not a runtime branch
+# in this one — unitysvc-core's documents have no interface-scoping field, so
+# every document still renders once per active interface; this guards itself
+# against being run for the wrong one instead.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (gateway-native notify://user, no upstream)"
+{% else %}
+URL="{{ service_base_url }}"
+if [[ "$URL" == smtp://* || "$URL" == smtps://* ]]; then
+    echo "connectivity ok (not applicable to the smtp_gateway interface)"
+    exit 0
+fi
+
+SINK="https://sink.unitysvc.dev"
+MARKER="notify-http-$(date +%s)-${RANDOM}"
+
+response=$(curl -sS --max-time 10 \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -d "{\"title\":\"notify connectivity\",\"body\":\"connectivity probe ${MARKER}\",\"type\":\"info\",\"format\":\"text\"}" \
+    -w "\n%{http_code}" \
+    "$URL" 2>/dev/null)
+status="${response##*$'\n'}"
+body="${response%$'\n'*}"
+
+case "$status" in
+  2??) ;;
+  000) echo "connectivity failed: could not connect to $URL" >&2; exit 1 ;;
+  *)   echo "connectivity failed: HTTP $status from $URL: ${body}" >&2; exit 1 ;;
+esac
+
+if curl -sS "${SINK}/retrieve?search=${MARKER}&wait=30" | grep -q "${MARKER}"; then
+    echo "connectivity ok — the configured destination received it (${MARKER})"
+    exit 0
+fi
+echo "connectivity failed: gateway accepted the envelope (HTTP $status) but ${MARKER} never reached ${SINK}" >&2
+exit 1
+{% endif %}

@@ -1,0 +1,39 @@
+#!/bin/bash
+# Send yourself a notification through the UnitySVC gateway (notify), over
+# SMTP -- for callers that can only send email, not make an HTTP request.
+# The platform delivers it in-app, by email, and through whatever external
+# destination you've configured via PUT /v1/users/me/notification-destination
+# -- no recipient or channel to specify.
+set -o pipefail
+
+{% if local_testing %}
+# notify is gateway-native (notify://user): there is no seller upstream to
+# call in local mode, so this branch only confirms wiring.
+echo "sent (skipped: gateway-native notify://user, no upstream)"
+exit 0
+{% else %}
+URL="{{ service_base_url }}"
+# This example is for notify's smtp_gateway interface only -- see
+# code-example-http.py.j2 for the canonical (HTTP) interface.
+if [[ "$URL" != smtp://* && "$URL" != smtps://* ]]; then
+    echo "sent (skipped: not applicable to the canonical interface)"
+    exit 0
+fi
+
+# curl does not translate line endings for an SMTP upload -- build the
+# message with explicit CRLF, or Haraka's SMTP-smuggling hardening rejects
+# a bare-LF-terminated message outright (451 Bare line-feed).
+printf 'From: alerts@example.com\r\nTo: me@example.com\r\nSubject: UnitySVC test notification\r\n\r\nTest message sent by the notify SMTP code example. No action needed.\r\n' \
+  | curl --silent --show-error --ssl --url "$URL" \
+    --user "{{ routing_key.username }}:${UNITYSVC_API_KEY:?set UNITYSVC_API_KEY to your svcpass}" \
+    --mail-from "alerts@example.com" --mail-rcpt "me@example.com" \
+    --upload-file -
+status=$?
+
+if [ "$status" -eq 0 ]; then
+    echo "sent (SMTP submission accepted)"
+    exit 0
+fi
+echo "send failed (curl exit $status)" >&2
+exit 1
+{% endif %}

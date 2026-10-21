@@ -1,0 +1,55 @@
+{
+  "capabilities": [
+    "deliver-message"
+  ],
+  "description": "`notify` takes an incoming notification request — POST a `msg` envelope, or send a message over SMTP if you can only send email — and delivers it to your platform notifications, plus any external notification service you've set as your notification preference — an email to your primary address, an HTTP notification to Discord or WhatsApp, a push notification such as ntfy, or more than one destination at once through a broadcast (`/b/`) group.\n\n`notify`, like most notification services, is free. Some external destinations may offer a paid option for advanced features.",
+  "details": {
+    "input_formats": [
+      "msg",
+      "smtp"
+    ],
+    "msg_capabilities": {
+      "formats": [
+        "text"
+      ],
+      "images": 0,
+      "links": 1,
+      "title": true
+    }
+  },
+  "logo": "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets/Alert/SVG/ic_fluent_alert_32_color.svg",
+  "name": "notify",
+  "payout_price": {
+    "description": "No platform commission — delivers to the caller's own configured destination",
+    "percentage": "100.00",
+    "type": "revenue_share"
+  },
+  "service_type": "notification",
+  "status": "ready",
+  "summary": "POST a `msg` envelope and UnitySVC delivers it to your platform notifications and any external destination you've configured — no recipient or channel to specify.",
+  "time_created": "2026-09-06T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "notify://user",
+      "is_active": true,
+      "is_primary": true,
+      "payload_format": "msg",
+      "raw": {
+        "request_transformer": {
+          "msg_transformer": {
+            "capabilities": {
+              "formats": [
+                "text"
+              ],
+              "images": 0,
+              "links": 1,
+              "title": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

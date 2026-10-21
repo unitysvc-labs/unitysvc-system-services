@@ -1,0 +1,55 @@
+{
+  "currency": "USD",
+  "display_name": "My AI",
+  "documents": {
+    "Connectivity test": {
+      "category": "connectivity_test",
+      "description": "POST a chat request through /ai and expect a chat completion back from the AI the test identity's preference points to",
+      "file_path": "connectivity.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        },
+        "preference": {
+          "ai": "labs/llm-fast"
+        }
+      },
+      "mime_type": "bash"
+    },
+    "Python code example": {
+      "category": "code_example",
+      "description": "Python (openai) example — ask your own AI a question through /ai",
+      "file_path": "code-example.py.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        },
+        "preference": {
+          "ai": "labs/llm-fast"
+        },
+        "requirements": [
+          "openai"
+        ]
+      },
+      "mime_type": "python"
+    }
+  },
+  "list_price": {
+    "description": "Free | each call is billed by the AI it resolves to (a /p/llm tier or another LLM service) at that service's own price",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "ai",
+  "status": "ready",
+  "time_created": "2026-10-20T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "http",
+      "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
+    }
+  }
+}

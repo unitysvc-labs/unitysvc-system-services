@@ -1,4 +1,10 @@
-# Direct-Response (`resp://`) Services
+# System services
+
+- `notify/` — full spec; `notify://user` delivers to the caller's notification preference.
+- `ai/` — full spec; `ai://preference` rewrites `/ai/...` to the caller's AI preference.
+- `resp*.json` — param files rendered through `../templates/resp/`, described below.
+
+## Direct-response (`resp://`) services
 
 This folder holds **direct-response** services under `unitysvc/`. Each one
 returns a fixed HTTP status code straight from the UnitySVC gateway — no real

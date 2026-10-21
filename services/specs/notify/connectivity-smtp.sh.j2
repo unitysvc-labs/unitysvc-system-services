@@ -1,0 +1,50 @@
+#!/bin/bash
+# Connectivity test for notify's smtp_gateway (SMTP) access interface — the
+# same gateway-native notify://user primitive as connectivity-http.sh.j2,
+# reached over SMTP for callers that can only send email. See that file for
+# why this is a separate document rather than a runtime branch in one.
+#
+# Not just "did Haraka accept the submission" but "did the configured
+# external destination actually receive it": this doc's
+# meta.preference.notification-destination (unitysvc#2074) points the OPS
+# test identity at http-to-sink for the duration of this script, so the
+# marker embedded in the email body should surface at
+# https://sink.unitysvc.dev once the smtp-gateway's email-to-envelope
+# conversion and notify's courier delivery both complete.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (gateway-native notify://user, no upstream)"
+{% else %}
+URL="{{ service_base_url }}"
+if [[ "$URL" != smtp://* && "$URL" != smtps://* ]]; then
+    echo "connectivity ok (not applicable to the canonical interface)"
+    exit 0
+fi
+
+SINK="https://sink.unitysvc.dev"
+MARKER="notify-smtp-$(date +%s)-${RANDOM}"
+
+# curl does not translate line endings for an SMTP upload -- a plain
+# heredoc would emit bare-LF-terminated lines, which Haraka's
+# SMTP-smuggling hardening rejects outright (451 Bare line-feed). Build
+# the message with explicit CRLF instead.
+printf 'From: test@example.com\r\nTo: recipient@example.com\r\nSubject: notify connectivity\r\n\r\nconnectivity probe %s\r\n' "${MARKER}" \
+  | curl --silent --show-error --ssl --url "$URL" \
+    --user "{{ routing_key.username }}:${UNITYSVC_API_KEY:?set UNITYSVC_API_KEY to your svcpass}" \
+    --mail-from "test@example.com" --mail-rcpt "recipient@example.com" \
+    --upload-file -
+status=$?
+
+if [ "$status" -ne 0 ]; then
+    echo "connectivity failed: SMTP submission rejected (curl exit $status)" >&2
+    exit 1
+fi
+
+if curl -sS "${SINK}/retrieve?search=${MARKER}&wait=30" | grep -q "${MARKER}"; then
+    echo "connectivity ok — the configured destination received it (${MARKER})"
+    exit 0
+fi
+echo "connectivity failed: SMTP submission accepted but ${MARKER} never reached ${SINK}" >&2
+exit 1
+{% endif %}
