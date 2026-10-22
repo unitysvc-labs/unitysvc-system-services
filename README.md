@@ -83,6 +83,25 @@ email goes through the SMTP gateway's separate `email` service
 (unitysvc/unitysvc#2678). It is a full spec under
 `services/specs/notify/`, published under the `labs` provider as before.
 
+## Email (SMTP username `email`)
+
+`email` is the SMTP counterpart of `notify` (unitysvc/unitysvc#2678). A caller
+sends a message to the SMTP gateway with AUTH username `email`, and the backend
+resolves it as an implicit `/b/` group:
+
+- this service, whose upstream is the platform mail server with
+  `to: ${ customer_secrets.__PRIMARY_USER_EMAIL }` (the `smtp-to-mailbox`
+  shape). For an individual it delivers to their verified address; for a team
+  it delivers to the verified addresses of all active members;
+- plus, optionally, the account's email preference: an SMTP-input service, such
+  as an SMTP relay or an SMTP-to-HTTP converter.
+
+The default mailbox leg ignores the sender's envelope recipients; the chosen
+preference controls its own downstream destination. It has no API-gateway interface.
+The `SVCPASS_SMTP_*` seller secrets are the ones `smtp-to-mailbox` uses (same
+seller). The spec stays `draft` until the backend and smtp-gateway support
+lands.
+
 ## AI (`ai://preference`)
 
 `ai` answers an OpenAI chat request with the caller's AI preference: a `/p/llm`

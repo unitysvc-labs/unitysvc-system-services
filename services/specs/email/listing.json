@@ -1,0 +1,49 @@
+{
+  "currency": "USD",
+  "display_name": "Email Me",
+  "documents": {
+    "Connectivity test": {
+      "category": "connectivity_test",
+      "description": "Submit a message to the SMTP gateway as `email` and expect the transaction to complete",
+      "file_path": "connectivity.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        }
+      },
+      "mime_type": "bash"
+    },
+    "SMTP code example": {
+      "category": "code_example",
+      "description": "Send yourself an email through the SMTP gateway (curl)",
+      "file_path": "code-example.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "min_expected_metrics": {
+          "bytes_out": 1
+        }
+      },
+      "mime_type": "bash"
+    }
+  },
+  "list_price": {
+    "description": "Free | delivery through the email service you've set as your preference is billed by that service's own listing, if it has a cost",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "email",
+  "status": "draft",
+  "time_created": "2026-10-21T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "smtp",
+      "base_url": "${SMTP_GATEWAY_BASE_URL}",
+      "routing_key": {
+        "username": "email"
+      }
+    }
+  }
+}

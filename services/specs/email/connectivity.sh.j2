@@ -1,0 +1,40 @@
+#!/bin/bash
+# Connectivity test for `email`: submit a message to the SMTP gateway with
+# AUTH username `email` and expect the transaction to complete. `email` is an
+# implicit broadcast (unitysvc/unitysvc#2678): the gateway delivers to the test
+# account's verified member addresses plus its email preference. The default
+# mailbox leg ignores the envelope recipient below.
+set -o pipefail
+
+{% if local_testing %}
+# Local mode probes the platform mail server the email service relays to: a
+# healthy server greets with "220 ...".
+HOST="{{ host }}"
+PORT="{{ port | default('587') }}"
+greeting=$( (echo "QUIT"; sleep 1) | nc -w 5 "$HOST" "$PORT" 2>/dev/null | head -1 )
+if [[ "$greeting" != "220 "* ]]; then
+    echo "connectivity failed: expected '220 ...' greeting from ${HOST}:${PORT}, got: ${greeting:-<no response>}" >&2
+    exit 1
+fi
+echo "connectivity ok (${HOST}:${PORT} greeted)"
+{% else %}
+URL="{{ service_base_url }}"
+MARKER="email-$(date +%s)-${RANDOM}"
+
+# curl does not translate line endings for an SMTP upload -- a plain
+# heredoc would emit bare-LF-terminated lines, which Haraka's
+# SMTP-smuggling hardening rejects outright (451 Bare line-feed). Build
+# the message with explicit CRLF instead.
+printf 'From: test@example.com\r\nTo: ignored@example.com\r\nSubject: email connectivity\r\n\r\nconnectivity probe %s\r\n' "${MARKER}" \
+  | curl --silent --show-error --ssl --url "$URL" \
+    --user "{{ routing_key.username }}:${UNITYSVC_API_KEY:?set UNITYSVC_API_KEY to your svcpass}" \
+    --mail-from "test@example.com" --mail-rcpt "ignored@example.com" \
+    --upload-file -
+status=$?
+
+if [ "$status" -ne 0 ]; then
+    echo "connectivity failed: SMTP submission rejected (curl exit $status)" >&2
+    exit 1
+fi
+echo "connectivity ok (SMTP submission accepted, ${MARKER})"
+{% endif %}
