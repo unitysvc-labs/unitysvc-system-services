@@ -1,0 +1,32 @@
+#!/bin/bash
+# Send yourself an email through the UnitySVC SMTP gateway (`email`). It is
+# delivered to your own verified address, plus the email service set as your
+# email preference on Profile. The To/Cc/Bcc you write are ignored: you never
+# choose the recipient.
+set -o pipefail
+
+{% if local_testing %}
+# email is gateway-native (email://user): there is no seller upstream to call
+# in local mode, so this branch only confirms wiring.
+echo "sent (skipped: gateway-native email://user, no upstream)"
+exit 0
+{% else %}
+URL="{{ service_base_url }}"
+
+# curl does not translate line endings for an SMTP upload -- build the
+# message with explicit CRLF, or Haraka's SMTP-smuggling hardening rejects
+# a bare-LF-terminated message outright (451 Bare line-feed).
+printf 'From: reports@example.com\r\nTo: me@example.com\r\nSubject: Your UnitySVC report\r\nContent-Type: text/html; charset=utf-8\r\n\r\n<p>Sent by the <b>email</b> SMTP code example. No action needed.</p>\r\n' \
+  | curl --silent --show-error --ssl --url "$URL" \
+    --user "{{ routing_key.username }}:${UNITYSVC_API_KEY:?set UNITYSVC_API_KEY to your svcpass}" \
+    --mail-from "reports@example.com" --mail-rcpt "me@example.com" \
+    --upload-file -
+status=$?
+
+if [ "$status" -eq 0 ]; then
+    echo "sent (SMTP submission accepted)"
+    exit 0
+fi
+echo "send failed (curl exit $status)" >&2
+exit 1
+{% endif %}

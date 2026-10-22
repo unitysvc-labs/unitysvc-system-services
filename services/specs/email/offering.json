@@ -1,0 +1,32 @@
+{
+  "capabilities": [
+    "deliver-message"
+  ],
+  "description": "`email` delivers an email you send to the UnitySVC SMTP gateway to your own verified email address — the address of the account you're acting as — plus the one additional email service you've set as your email preference, such as `smtp-relay` with your own server or an enrolled `smtp-relay`. You never name the recipient: whatever `To`, `Cc` or `Bcc` the message carries, delivery goes only to those destinations.\n\nUse `email` to receive reports, receipts and documents as real email, with your formatting and attachments intact. It is separate from `notify`, which delivers short notifications through the API gateway.",
+  "details": {
+    "input_formats": [
+      "smtp"
+    ]
+  },
+  "logo": "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets/Mail/SVG/ic_fluent_mail_32_color.svg",
+  "name": "email",
+  "payout_price": {
+    "description": "No platform commission — delivers to the caller's own mailbox and configured email service",
+    "percentage": "100.00",
+    "type": "revenue_share"
+  },
+  "service_type": "email",
+  "status": "draft",
+  "summary": "Send an email to the UnitySVC SMTP gateway and it is delivered to your own verified address, plus the email service you've set as your preference — no recipient to specify.",
+  "time_created": "2026-10-21T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "email://user",
+      "is_active": true,
+      "is_primary": true,
+      "payload_format": "x-email-envelope"
+    }
+  }
+}

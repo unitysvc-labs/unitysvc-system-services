@@ -83,6 +83,17 @@ email goes through the SMTP gateway's separate `email` service
 (unitysvc/unitysvc#2678). It is a full spec under
 `services/specs/notify/`, published under the `labs` provider as before.
 
+## Email (`email://user`)
+
+`email` is the SMTP counterpart of `notify` (unitysvc/unitysvc#2678). A caller
+sends a message to the SMTP gateway with AUTH username `email`; the
+smtp-gateway delivers it to the verified email address of the role the key acts
+for, plus the one additional email service set as that role's email preference
+(`smtp-relay`, or an enrolled `smtp-relay` addressed by its enrollment code).
+The message's own `To`/`Cc`/`Bcc` never widen the recipients. It has no
+API-gateway interface. The spec stays `draft` until the smtp-gateway and
+backend support `email://user`.
+
 ## AI (`ai://preference`)
 
 `ai` answers an OpenAI chat request with the caller's AI preference: a `/p/llm`

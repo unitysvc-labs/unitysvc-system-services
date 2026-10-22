@@ -1,0 +1,31 @@
+#!/bin/bash
+# Connectivity test for `email`: submit a message to the SMTP gateway with
+# AUTH username `email` and expect the transaction to complete. The gateway
+# resolves the email://user sentinel (unitysvc/unitysvc#2678): it delivers to
+# the test identity's own verified address plus its email preference, and
+# ignores the envelope recipient below.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (gateway-native email://user, no upstream)"
+{% else %}
+URL="{{ service_base_url }}"
+MARKER="email-$(date +%s)-${RANDOM}"
+
+# curl does not translate line endings for an SMTP upload -- a plain
+# heredoc would emit bare-LF-terminated lines, which Haraka's
+# SMTP-smuggling hardening rejects outright (451 Bare line-feed). Build
+# the message with explicit CRLF instead.
+printf 'From: test@example.com\r\nTo: ignored@example.com\r\nSubject: email connectivity\r\n\r\nconnectivity probe %s\r\n' "${MARKER}" \
+  | curl --silent --show-error --ssl --url "$URL" \
+    --user "{{ routing_key.username }}:${UNITYSVC_API_KEY:?set UNITYSVC_API_KEY to your svcpass}" \
+    --mail-from "test@example.com" --mail-rcpt "ignored@example.com" \
+    --upload-file -
+status=$?
+
+if [ "$status" -ne 0 ]; then
+    echo "connectivity failed: SMTP submission rejected (curl exit $status)" >&2
+    exit 1
+fi
+echo "connectivity ok (SMTP submission accepted, ${MARKER})"
+{% endif %}
