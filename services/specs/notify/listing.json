@@ -18,22 +18,6 @@
       },
       "mime_type": "bash"
     },
-    "Connectivity test (SMTP)": {
-      "category": "connectivity_test",
-      "description": "Submit a message over SMTP through the smtp_gateway interface and expect the transaction to complete, then confirm delivery landed at the configured destination",
-      "file_path": "connectivity-smtp.sh.j2",
-      "is_active": true,
-      "is_public": true,
-      "meta": {
-        "min_expected_metrics": {
-          "bytes_out": 1
-        },
-        "preference": {
-          "notification-destination": "http-to-sink"
-        }
-      },
-      "mime_type": "bash"
-    },
     "Default request body": {
       "$doc_preset": "msg_request_template"
     },
@@ -55,22 +39,6 @@
         ]
       },
       "mime_type": "python"
-    },
-    "SMTP code example": {
-      "category": "code_example",
-      "description": "Send yourself a notification by submitting an email over SMTP",
-      "file_path": "code-example-smtp.sh.j2",
-      "is_active": true,
-      "is_public": true,
-      "meta": {
-        "min_expected_metrics": {
-          "bytes_out": 1
-        },
-        "preference": {
-          "notification-destination": "http-to-sink"
-        }
-      },
-      "mime_type": "bash"
     }
   },
   "list_price": {
@@ -85,13 +53,6 @@
     "canonical": {
       "access_method": "http",
       "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
-    },
-    "smtp_gateway": {
-      "access_method": "smtp",
-      "base_url": "${SMTP_GATEWAY_BASE_URL}",
-      "routing_key": {
-        "username": "notify"
-      }
     }
   }
 }

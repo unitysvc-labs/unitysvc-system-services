@@ -14,13 +14,6 @@ import httpx
 print("sent (skipped: gateway-native notify://user, no upstream)")
 sys.exit(0)
 {% else %}
-# This example is for notify's canonical (HTTP) interface only -- see
-# code-example-smtp.sh.j2 for the smtp_gateway interface. Skip cleanly when
-# rendered against that one rather than failing on an unsupported scheme.
-if "{{ service_base_url }}".startswith(("smtp://", "smtps://")):
-    print("sent (skipped: not applicable to the smtp_gateway interface)")
-    sys.exit(0)
-
 response = httpx.post(
     "{{ service_base_url }}",
     headers={"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {},

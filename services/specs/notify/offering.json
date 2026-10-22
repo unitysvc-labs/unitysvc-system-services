@@ -2,11 +2,10 @@
   "capabilities": [
     "deliver-message"
   ],
-  "description": "`notify` takes an incoming notification request — POST a `msg` envelope, or send a message over SMTP if you can only send email — and delivers it to your platform notifications, plus any external notification service you've set as your notification preference — an email to your primary address, an HTTP notification to Discord or WhatsApp, a push notification such as ntfy, or more than one destination at once through a broadcast (`/b/`) group.\n\n`notify`, like most notification services, is free. Some external destinations may offer a paid option for advanced features.",
+  "description": "`notify` takes an incoming notification request — POSTed as a `msg` envelope — and delivers it to your platform notifications, plus any external notification service you've set as your notification preference — an email to your primary address, an HTTP notification to Discord or WhatsApp, a push notification such as ntfy, or more than one destination at once through a broadcast (`/b/`) group.\n\n`notify`, like most notification services, is free. Some external destinations may offer a paid option for advanced features.",
   "details": {
     "input_formats": [
-      "msg",
-      "smtp"
+      "msg"
     ],
     "msg_capabilities": {
       "formats": [
