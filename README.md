@@ -76,9 +76,11 @@ auth + routing path without touching any upstream.
 
 ## Notify (`notify://user`)
 
-`notify` takes a `msg` envelope (HTTP) or an email (SMTP) and delivers it to the
+`notify` takes a `msg` envelope over the API gateway and delivers it to the
 caller's platform notifications plus the external destination set as their
-notification preference (unitysvc/unitysvc#1526, #2063). It is a full spec under
+notification preference (unitysvc/unitysvc#1526). It has no SMTP interface:
+email goes through the SMTP gateway's separate `email` service
+(unitysvc/unitysvc#2678). It is a full spec under
 `services/specs/notify/`, published under the `labs` provider as before.
 
 ## AI (`ai://preference`)

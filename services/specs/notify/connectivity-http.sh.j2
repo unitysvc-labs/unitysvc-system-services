@@ -12,22 +12,12 @@
 # envelope posted here — carrying a unique marker — gets forwarded verbatim
 # (backend/app/workers/notification_tasks.py::_send_notification_via_api_gateway)
 # to https://sink.unitysvc.dev, where we poll for it.
-#
-# notify's smtp_gateway interface shares this same document set structurally
-# (see connectivity-smtp.sh.j2) but is a separate file, not a runtime branch
-# in this one — unitysvc-core's documents have no interface-scoping field, so
-# every document still renders once per active interface; this guards itself
-# against being run for the wrong one instead.
 set -o pipefail
 
 {% if local_testing %}
 echo "connectivity ok (gateway-native notify://user, no upstream)"
 {% else %}
 URL="{{ service_base_url }}"
-if [[ "$URL" == smtp://* || "$URL" == smtps://* ]]; then
-    echo "connectivity ok (not applicable to the smtp_gateway interface)"
-    exit 0
-fi
 
 SINK="https://sink.unitysvc.dev"
 MARKER="notify-http-$(date +%s)-${RANDOM}"
