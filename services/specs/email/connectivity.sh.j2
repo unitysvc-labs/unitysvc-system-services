@@ -2,8 +2,8 @@
 # Connectivity test for `email`: submit a message to the SMTP gateway with
 # AUTH username `email` and expect the transaction to complete. `email` is an
 # implicit broadcast (unitysvc/unitysvc#2678): the gateway delivers to the test
-# identity's own verified address plus its email preference, and ignores the
-# envelope recipient below.
+# account's verified member addresses plus its email preference. The default
+# mailbox leg ignores the envelope recipient below.
 set -o pipefail
 
 {% if local_testing %}

@@ -2,7 +2,7 @@
   "capabilities": [
     "deliver-message"
   ],
-  "description": "`email` delivers an email you send to the UnitySVC SMTP gateway to your own verified email address — the address of the account you're acting as — plus the one additional email service you've set as your email preference, such as `smtp-relay` with your own server or an enrolled `smtp-relay`. You never name the recipient: whatever `To`, `Cc` or `Bcc` the message carries, delivery goes only to those destinations.\n\nUse `email` to receive reports, receipts and documents as real email, with your formatting and attachments intact. It is separate from `notify`, which delivers short notifications through the API gateway.",
+  "description": "Send an email to the verified mailboxes of the account you're acting for.\n\nThe SMTP gateway delivers to your verified address for an individual account, or to every active team member's verified address for a team. An optional account email preference receives an additional copy through an SMTP-input service; that service can relay mail or convert it to HTTP. Formatting and attachments remain intact on the default email delivery.\n\nAuthenticate to the SMTP gateway with username `email` and your UnitySVC API key. The sender's envelope recipients do not redirect the default mailbox delivery. Configure an email preference on the account when you want an additional delivery.",
   "details": {
     "input_formats": [
       "smtp"
@@ -11,13 +11,13 @@
   "logo": "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets/Mail/SVG/ic_fluent_mail_32_color.svg",
   "name": "email",
   "payout_price": {
-    "description": "No platform commission — delivers to the caller's own mailbox and configured email service",
+    "description": "No platform commission — delivers to account member mailboxes and the configured email service",
     "percentage": "100.00",
     "type": "revenue_share"
   },
   "service_type": "email",
   "status": "draft",
-  "summary": "Send an email to the UnitySVC SMTP gateway and it is delivered to your own verified address, plus the email service you've set as your preference — no recipient to specify.",
+  "summary": "Send email to verified account member mailboxes and an optional additional delivery service.",
   "time_created": "2026-10-21T00:00:00Z",
   "upstream_access_config": {
     "default": {

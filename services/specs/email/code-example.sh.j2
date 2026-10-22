@@ -1,12 +1,11 @@
 #!/bin/bash
-# Send yourself an email through the UnitySVC SMTP gateway (`email`). It is
-# delivered to your own verified address, plus the email service set as your
-# email preference on Profile. The To/Cc/Bcc you write are ignored: you never
-# choose the recipient.
+# Send through the UnitySVC SMTP gateway (`email`). The default delivery reaches
+# your verified mailbox, or all active team members' verified mailboxes. The
+# account's optional email preference receives an additional copy.
 set -o pipefail
 
 {% if local_testing %}
-# The recipient is the caller's verified address, which only exists behind the
+# The default recipients are verified account members, resolved behind the
 # gateway, so local mode only confirms wiring.
 echo "sent (skipped: the recipient is resolved by the gateway)"
 exit 0

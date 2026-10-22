@@ -91,13 +91,13 @@ resolves it as an implicit `/b/` group:
 
 - this service, whose upstream is the platform mail server with
   `to: ${ customer_secrets.__PRIMARY_USER_EMAIL }` (the `smtp-to-mailbox`
-  shape), so it delivers to the caller's verified address;
-- plus, optionally, the account's email preference: one SMTP service that
-  delivers to its own recipient, such as `smtp-relay` with `SMTP_RELAY_TO` or
-  an enrolled `smtp-relay`.
+  shape). For an individual it delivers to their verified address; for a team
+  it delivers to the verified addresses of all active members;
+- plus, optionally, the account's email preference: an SMTP-input service, such
+  as an SMTP relay or an SMTP-to-HTTP converter.
 
-Every leg delivers only to the recipient its upstream pins; the message's own
-`To`/`Cc`/`Bcc` never widen the recipients. It has no API-gateway interface.
+The default mailbox leg ignores the sender's envelope recipients; the chosen
+preference controls its own downstream destination. It has no API-gateway interface.
 The `SVCPASS_SMTP_*` seller secrets are the ones `smtp-to-mailbox` uses (same
 seller). The spec stays `draft` until the backend and smtp-gateway support
 lands.

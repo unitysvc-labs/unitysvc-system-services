@@ -1,7 +1,7 @@
 # System services
 
 - `notify/` — full spec; `notify://user` delivers to the caller's notification preference.
-- `email/` — full spec, `draft`; SMTP username `email` is an implicit broadcast: this service (relays to the caller's verified address, the `smtp-to-mailbox` shape) plus the account's email preference.
+- `email/` — full spec, `draft`; SMTP username `email` reaches verified account member mailboxes plus the account's optional SMTP-input preference.
 - `ai/` — full spec; `ai://preference` rewrites `/ai/...` to the caller's AI preference.
 - `resp*.json` — param files rendered through `../templates/resp/`, described below.
 
