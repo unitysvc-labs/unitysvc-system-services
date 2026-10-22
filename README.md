@@ -83,16 +83,24 @@ email goes through the SMTP gateway's separate `email` service
 (unitysvc/unitysvc#2678). It is a full spec under
 `services/specs/notify/`, published under the `labs` provider as before.
 
-## Email (`email://user`)
+## Email (SMTP username `email`)
 
 `email` is the SMTP counterpart of `notify` (unitysvc/unitysvc#2678). A caller
-sends a message to the SMTP gateway with AUTH username `email`; the
-smtp-gateway delivers it to the verified email address of the role the key acts
-for, plus the one additional email service set as that role's email preference
-(`smtp-relay`, or an enrolled `smtp-relay` addressed by its enrollment code).
-The message's own `To`/`Cc`/`Bcc` never widen the recipients. It has no
-API-gateway interface. The spec stays `draft` until the smtp-gateway and
-backend support `email://user`.
+sends a message to the SMTP gateway with AUTH username `email`, and the backend
+resolves it as an implicit `/b/` group:
+
+- this service, whose upstream is the platform mail server with
+  `to: ${ customer_secrets.__PRIMARY_USER_EMAIL }` (the `smtp-to-mailbox`
+  shape), so it delivers to the caller's verified address;
+- plus, optionally, the account's email preference: one SMTP service that
+  delivers to its own recipient, such as `smtp-relay` with `SMTP_RELAY_TO` or
+  an enrolled `smtp-relay`.
+
+Every leg delivers only to the recipient its upstream pins; the message's own
+`To`/`Cc`/`Bcc` never widen the recipients. It has no API-gateway interface.
+The `SVCPASS_SMTP_*` seller secrets are the ones `smtp-to-mailbox` uses (same
+seller). The spec stays `draft` until the backend and smtp-gateway support
+lands.
 
 ## AI (`ai://preference`)
 

@@ -21,12 +21,15 @@
   "time_created": "2026-10-21T00:00:00Z",
   "upstream_access_config": {
     "default": {
-      "access_method": "http",
-      "auth_mode": "forward",
-      "base_url": "email://user",
+      "access_method": "smtp",
+      "host": "${ secrets.SVCPASS_SMTP_SERVER }",
       "is_active": true,
       "is_primary": true,
-      "payload_format": "x-email-envelope"
+      "password": "${ secrets.SVCPASS_SMTP_PASSWORD }",
+      "port": "${ secrets.SVCPASS_SMTP_PORT ?? 587 }",
+      "tls": "${ secrets.SVCPASS_SMTP_TLS ?? true }",
+      "to": "${ customer_secrets.__PRIMARY_USER_EMAIL }",
+      "username": "${ secrets.SVCPASS_SMTP_USERNAME }"
     }
   }
 }

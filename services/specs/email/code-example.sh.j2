@@ -6,9 +6,9 @@
 set -o pipefail
 
 {% if local_testing %}
-# email is gateway-native (email://user): there is no seller upstream to call
-# in local mode, so this branch only confirms wiring.
-echo "sent (skipped: gateway-native email://user, no upstream)"
+# The recipient is the caller's verified address, which only exists behind the
+# gateway, so local mode only confirms wiring.
+echo "sent (skipped: the recipient is resolved by the gateway)"
 exit 0
 {% else %}
 URL="{{ service_base_url }}"
