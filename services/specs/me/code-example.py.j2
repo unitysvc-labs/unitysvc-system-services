@@ -9,19 +9,19 @@ import httpx
 #   {"object": "service:me", "permissions": ["read"],
 #    "options": "fields=research,address.state"}
 # and null otherwise (not set, or not shared with this key: you can't tell).
-# GET /me/<path> asks for one path.
+# GET /me/profile/<path> asks for one path; /me is /me/profile.
 {% if local_testing %}
-# me is gateway-native (me://profile): there is no seller upstream to call in
+# me is gateway-native (me://user): there is no seller upstream to call in
 # local mode, so this branch only confirms wiring.
-print("read (skipped: gateway-native me://profile, no upstream)")
+print("read (skipped: gateway-native me://user, no upstream)")
 sys.exit(0)
 {% else %}
 response = httpx.get(
-    "{{ service_base_url }}",
+    "{{ service_base_url }}/profile",
     params={"fields": "research,address.state"},
     headers={"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {},
 )
 response.raise_for_status()
-for name, data in response.json()["sections"].items():
+for name, data in response.json()["profile"].items():
     print(f"{name}: {'(unspecified)' if data is None else data}")
 {% endif %}

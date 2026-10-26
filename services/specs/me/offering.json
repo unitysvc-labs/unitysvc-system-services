@@ -1,5 +1,5 @@
 {
-  "description": "`me` lets an app you authorize read the parts of your UnitySVC profile you choose, and, only if you also allow it, update them.\n\nThe gateway answers `me` itself (`me://profile`): there is no upstream. A read names the profile paths it wants (a section such as `research`, or one value inside it such as `address.state`) and gets every one of them back, served from your account's routing context: a path has its value when the calling key's `service:me` grant covers it and you have set it, and is `null` otherwise. `null` means unspecified, so an app cannot tell a value you never set from one you did not share, and your grant itself is never revealed. Whether a section is public plays no part. A write is forwarded to UnitySVC, which checks the grant and that the key's owner may edit the account, then merges the data into the section. `me` exports two permissions and nothing else: `read` and `write`. `invoke`, and the `service:*` and `*` wildcards that stand for it, never reach `me`. A grant's `fields` defaults to nothing, so it must list what it covers; `fields=*` (the whole profile) is for keys you create yourself, never for a key issued to another service. `me` is not billed.\n\nCall `GET /me?fields=research,address.state` for the paths you want, or `GET /me/<path>` for one, with a UnitySVC key whose policy grants `service:me` with `read`, e.g. `{\"object\": \"service:me\", \"permissions\": [\"read\"], \"options\": \"fields=research,address.state\"}`. To update a section, `POST /me` with `{\"name\": \"<section>\", \"public\": <bool>, \"data\": {...}}` using a key whose grant also holds `write` and lists that whole section. Edit your profile itself under **Profile** in the dashboard.",
+  "description": "`me` lets an app you authorize read the parts of your UnitySVC profile you choose, and, only if you also allow it, update them.\n\nThe gateway answers `me` itself (`me://user`): there is no upstream. Today `me` serves one resource, your `profile`; others may be added beside it. A read names the profile paths it wants (a section such as `research`, or one value inside it such as `address.state`) and gets every one of them back, served from your account's routing context: a path has its value when the calling key's `service:me` grant covers it and you have set it, and is `null` otherwise. `null` means unspecified, so an app cannot tell a value you never set from one you did not share, and your grant itself is never revealed. Whether a section is public plays no part. A write is forwarded to UnitySVC, which checks the grant and that the key's owner may edit the account, then merges the data into the section. `me` exports two permissions and nothing else: `read` and `write`. `invoke`, and the `service:*` and `*` wildcards that stand for it, never reach `me`. A grant's `fields` defaults to nothing, so it must list what it covers; `fields=*` (the whole profile) is for keys you create yourself, never for a key issued to another service. `me` is not billed.\n\nCall `GET /me/profile?fields=research,address.state` (or just `GET /me?fields=...`, as `profile` is the default) for the paths you want, or `GET /me/profile/<path>` for one, with a UnitySVC key whose policy grants `service:me` with `read`, e.g. `{\"object\": \"service:me\", \"permissions\": [\"read\"], \"options\": \"fields=research,address.state\"}`; the answer is `{\"profile\": {...}}`. To update a section, `POST /me` with `{\"name\": \"<section>\", \"public\": <bool>, \"data\": {...}}` using a key whose grant also holds `write` and lists that whole section. Edit your profile itself under **Profile** in the dashboard.",
   "details": {},
   "exports": {
     "options": {
@@ -18,10 +18,12 @@
     "permissions": {
       "read": [
         "GET /",
-        "GET /*"
+        "GET /profile",
+        "GET /profile/*"
       ],
       "write": [
-        "POST /"
+        "POST /",
+        "POST /profile"
       ]
     }
   },
@@ -40,7 +42,7 @@
     "default": {
       "access_method": "http",
       "auth_mode": "forward",
-      "base_url": "me://profile",
+      "base_url": "me://user",
       "is_active": true
     }
   }

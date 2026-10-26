@@ -9,7 +9,7 @@ resolves on its own:
 | `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
-| `me` | `me://profile` | returns the profile paths the caller's `service:me` grant lists (`fields` option); forwards writes to the backend |
+| `me` | `me://user` | answers `/me/profile` (the default resource) from the routing context, valued by the caller's `service:me` grant; forwards writes to the backend |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -124,26 +124,29 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
      "$API_GATEWAY_BASE_URL/ai/chat/completions"
 ```
 
-## Me (`me://profile`)
+## Me (`me://user`)
 
-`me` lets a key read, and with permission update, its account's profile
-(unitysvc/unitysvc#2720). Unlike the services above it holds the customer's own
-data, so its `exports` declare exactly two permissions, `read` (`GET /`,
-`GET /*`) and `write` (`POST /`), and no `invoke`: `service:*` and `*` never
-reach it. A grant's `fields` option lists the profile paths it covers
-(`research`, `address.state`) and defaults to nothing. The grant is the
-customer's private choice, so a read never reveals it: the caller names the
-paths it wants (`me://profile?fields=...`), and every one is answered, with a
-value where the grant covers it and it is set, and `null` (unspecified)
-otherwise. Reads are answered by the gateway from the routing context; writes
-are forwarded to the backend, which merges a whole listed section. `me` is not
-billed. It is a full spec under `services/specs/me/`.
+`me` lets a key read, and with permission update, what its account knows about
+itself (unitysvc/unitysvc#2720). Today that is one resource, the `profile`,
+which is also the default: `/me` is `/me/profile`, and `/me/profile/<path>`
+reads one path. Unlike the services above it holds the customer's own data, so
+its `exports` declare exactly two permissions, `read` (`GET /`, `GET /profile`,
+`GET /profile/*`) and `write` (`POST /`, `POST /profile`), and no `invoke`:
+`service:*` and `*` never reach it. A grant's `fields` option lists the
+profile paths it covers (`research`, `address.state`) and defaults to nothing.
+The grant is the customer's private choice, so a read never reveals it: the
+caller names the paths it wants (`?fields=...`), and every one is answered
+under `profile`, with a value where the grant covers it and it is set, and
+`null` (unspecified) otherwise. Reads are answered by the gateway from the
+routing context; writes are forwarded to the backend, which merges a whole
+listed section. `me` is not billed. It is a full spec under
+`services/specs/me/`.
 
 ```bash
 # key policy: {"object": "service:me", "permissions": ["read"], "options": "fields=research"}
 curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
-     "$API_GATEWAY_BASE_URL/me?fields=research,address.state"
-# -> {"sections": {"research": {...}, "address": {"state": null}}}
+     "$API_GATEWAY_BASE_URL/me/profile?fields=research,address.state"
+# -> {"profile": {"research": {...}, "address": {"state": null}}}
 ```
 
 ## Repository layout
