@@ -3,12 +3,13 @@ import sys
 
 import httpx
 
-# Read the parts of your UnitySVC profile this key may see, through the gateway
-# (me). The key's policy decides what comes back: a service:me grant with
-# `read` and a `fields` option, e.g.
+# Read parts of your UnitySVC profile through the gateway (me). Ask for the
+# paths you want; every one comes back, with its value where the key's
+# service:me grant covers it, e.g.
 #   {"object": "service:me", "permissions": ["read"],
 #    "options": "fields=research,address.state"}
-# A key without such a grant gets 403. GET /me/<section> returns one section.
+# and null otherwise (not set, or not shared with this key: you can't tell).
+# GET /me/<path> asks for one path.
 {% if local_testing %}
 # me is gateway-native (me://profile): there is no seller upstream to call in
 # local mode, so this branch only confirms wiring.
@@ -17,9 +18,10 @@ sys.exit(0)
 {% else %}
 response = httpx.get(
     "{{ service_base_url }}",
+    params={"fields": "research,address.state"},
     headers={"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {},
 )
 response.raise_for_status()
 for name, data in response.json()["sections"].items():
-    print(f"{name}: {data}")
+    print(f"{name}: {'(unspecified)' if data is None else data}")
 {% endif %}

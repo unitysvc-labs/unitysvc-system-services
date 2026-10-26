@@ -131,15 +131,19 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
 data, so its `exports` declare exactly two permissions, `read` (`GET /`,
 `GET /*`) and `write` (`POST /`), and no `invoke`: `service:*` and `*` never
 reach it. A grant's `fields` option lists the profile paths it covers
-(`research`, `address.state`), defaults to nothing, and travels to the gateway
-as `me://profile?fields=...`. Reads are answered by the gateway from the
-routing context; writes are forwarded to the backend, which merges a whole
-listed section. `me` is not billed. It is a full spec under
-`services/specs/me/`.
+(`research`, `address.state`) and defaults to nothing. The grant is the
+customer's private choice, so a read never reveals it: the caller names the
+paths it wants (`me://profile?fields=...`), and every one is answered, with a
+value where the grant covers it and it is set, and `null` (unspecified)
+otherwise. Reads are answered by the gateway from the routing context; writes
+are forwarded to the backend, which merges a whole listed section. `me` is not
+billed. It is a full spec under `services/specs/me/`.
 
 ```bash
 # key policy: {"object": "service:me", "permissions": ["read"], "options": "fields=research"}
-curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me"
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
+     "$API_GATEWAY_BASE_URL/me?fields=research,address.state"
+# -> {"sections": {"research": {...}, "address": {"state": null}}}
 ```
 
 ## Repository layout

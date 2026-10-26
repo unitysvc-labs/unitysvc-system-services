@@ -1,17 +1,16 @@
 #!/bin/bash
 # Connectivity test for me's canonical interface: the gateway-native me://profile
 # scheme (unitysvc/apisix-gateways#72). There is NO seller upstream: the gateway
-# answers a read itself from the caller's routing context, returning only the
-# profile paths the key's service:me grant lists in its `fields` option.
-#
-# The test key needs a service:me grant with `read` (and a `fields` option) for
-# this to return any section; a key without one gets 403, which fails here.
+# answers a read itself from the caller's routing context: every path the
+# caller asks for, valued where the key's service:me grant covers it and null
+# otherwise. Any valid key gets the answer's shape, so this proves the route;
+# the values depend on the test key's grant and profile.
 set -o pipefail
 
 {% if local_testing %}
 echo "connectivity ok (gateway-native me://profile, no upstream)"
 {% else %}
-URL="{{ service_base_url }}"
+URL="{{ service_base_url }}?fields=research"
 
 response=$(curl -sS --max-time 30 \
     -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
@@ -27,7 +26,7 @@ case "$status" in
 esac
 
 if printf '%s' "$body" | grep -q '"sections"'; then
-    echo "connectivity ok — /me answered with the sections this key may read"
+    echo "connectivity ok — /me answered the requested sections"
     exit 0
 fi
 echo "connectivity failed: HTTP $status from $URL but no sections in the body: ${body}" >&2
