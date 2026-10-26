@@ -34,17 +34,15 @@
       "base_url": "notify://user",
       "is_active": true,
       "payload_format": "msg",
-      "raw": {
-        "request_transformer": {
-          "msg_transformer": {
-            "capabilities": {
-              "formats": [
-                "text"
-              ],
-              "images": 0,
-              "links": 1,
-              "title": true
-            }
+      "request_transformer": {
+        "msg_transformer": {
+          "capabilities": {
+            "formats": [
+              "text"
+            ],
+            "images": 0,
+            "links": 1,
+            "title": true
           }
         }
       }
