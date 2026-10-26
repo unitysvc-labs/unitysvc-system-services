@@ -9,6 +9,7 @@ resolves on its own:
 | `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
+| `me` | `me://profile` | returns the profile paths the caller's `service:me` grant lists (`fields` option); forwards writes to the backend |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -123,9 +124,27 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
      "$API_GATEWAY_BASE_URL/ai/chat/completions"
 ```
 
+## Me (`me://profile`)
+
+`me` lets a key read, and with permission update, its account's profile
+(unitysvc/unitysvc#2720). Unlike the services above it holds the customer's own
+data, so its `exports` declare exactly two permissions, `read` (`GET /`,
+`GET /*`) and `write` (`POST /`), and no `invoke`: `service:*` and `*` never
+reach it. A grant's `fields` option lists the profile paths it covers
+(`research`, `address.state`), defaults to nothing, and travels to the gateway
+as `me://profile?fields=...`. Reads are answered by the gateway from the
+routing context; writes are forwarded to the backend, which merges a whole
+listed section. `me` is not billed. It is a full spec under
+`services/specs/me/`.
+
+```bash
+# key policy: {"object": "service:me", "permissions": ["read"], "options": "fields=research"}
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me"
+```
+
 ## Repository layout
 
-`notify` and `ai` are full specs (`services/specs/<name>/` with `offering.json`,
+`notify`, `ai`, `email` and `me` are full specs (`services/specs/<name>/` with `offering.json`,
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered
