@@ -24,7 +24,6 @@
       "access_method": "smtp",
       "host": "${ secrets.SVCPASS_SMTP_SERVER }",
       "is_active": true,
-      "is_primary": true,
       "password": "${ secrets.SVCPASS_SMTP_PASSWORD }",
       "port": "${ secrets.SVCPASS_SMTP_PORT ?? 587 }",
       "tls": "${ secrets.SVCPASS_SMTP_TLS ?? true }",

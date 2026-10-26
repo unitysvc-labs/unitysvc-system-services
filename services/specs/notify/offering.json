@@ -33,7 +33,6 @@
       "auth_mode": "forward",
       "base_url": "notify://user",
       "is_active": true,
-      "is_primary": true,
       "payload_format": "msg",
       "raw": {
         "request_transformer": {

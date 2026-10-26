@@ -31,7 +31,6 @@
       "auth_mode": "forward",
       "base_url": "ai://preference",
       "is_active": true,
-      "is_primary": true,
       "payload_format": "openai"
     }
   }
