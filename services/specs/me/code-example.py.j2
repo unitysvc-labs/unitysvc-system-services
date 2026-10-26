@@ -7,7 +7,7 @@ import httpx
 # paths you want; every one comes back, with its value where the key's
 # service:me grant covers it, e.g.
 #   {"object": "service:me", "permissions": ["read"],
-#    "options": "fields=research,address.state"}
+#    "options": "profile=research,address.state"}
 # and null otherwise (not set, or not shared with this key: you can't tell).
 # GET /me/profile/<path> asks for one path; /me is /me/profile.
 {% if local_testing %}
@@ -17,8 +17,8 @@ print("read (skipped: gateway-native me://user, no upstream)")
 sys.exit(0)
 {% else %}
 response = httpx.get(
-    "{{ service_base_url }}/profile",
-    params={"fields": "research,address.state"},
+    "{{ service_base_url }}",
+    params={"profile": "research,address.state"},
     headers={"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {},
 )
 response.raise_for_status()

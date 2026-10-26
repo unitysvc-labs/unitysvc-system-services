@@ -10,7 +10,7 @@ set -o pipefail
 {% if local_testing %}
 echo "connectivity ok (gateway-native me://user, no upstream)"
 {% else %}
-URL="{{ service_base_url }}/profile?fields=research"
+URL="{{ service_base_url }}?profile=research"
 
 response=$(curl -sS --max-time 30 \
     -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
