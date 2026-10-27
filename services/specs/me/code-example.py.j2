@@ -3,26 +3,44 @@ import sys
 
 import httpx
 
-# Read what this key may see of your UnitySVC profile through the gateway
-# (me). The key's service:me grant decides it, e.g.
-#   {"object": "service:me", "permissions": ["read"],
-#    "options": "profile=research,address.state"}
-# A value you never set and one the key may not read are both absent.
-# GET /me/profile/<path> reads one path; /me is /me/profile.
+# The key's explicit service:me grant selects resources, e.g.
+#   {"object": "service:me", "permissions": ["read", "write"],
+#    "options": "profile=research&intents=travel&preferences=reading"}
+# One permission set applies to all selections. Unset/unshared categories are
+# absent; granted categories include private/public items and later additions.
 {% if local_testing %}
 # me is gateway-native (me://user): there is no seller upstream to call in
 # local mode, so this branch only confirms wiring.
 print("read (skipped: gateway-native me://user, no upstream)")
 sys.exit(0)
 {% else %}
-response = httpx.get(
-    "{{ service_base_url }}",
-    headers={"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {},
-)
-response.raise_for_status()
-profile = response.json()["profile"]
-if not profile:
-    print("(nothing readable with this key)")
-for name, data in profile.items():
-    print(f"{name}: {data}")
+base_url = "{{ service_base_url }}".rstrip("/")
+headers = {"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {}
+
+
+def replace_category(resource: str, category: str, items: list[dict]) -> dict:
+    """Replace a complete category; call explicitly only when you intend a write."""
+    if resource not in {"intents", "preferences"}:
+        raise ValueError("Choose intents or preferences")
+    response = httpx.post(
+        f"{base_url}/{resource}/{category}",
+        headers=headers,
+        json={"data": items},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()  # Only {"name": category}; no stored data or version.
+
+
+for resource in ("profile", "intents", "preferences"):
+    response = httpx.get(f"{base_url}/{resource}", headers=headers, timeout=30)
+    response.raise_for_status()
+    values = response.json()[resource]
+    print(f"{resource}: {values or '(nothing readable with this key)'}")
+
+# To replace a category deliberately, call e.g.:
+# replace_category("intents", "travel", [{"text": "Visit Japan next spring.", "public": False}])
+# This replaces the entire list, including owner/other-app items. Service writes
+# may preserve identical public records but cannot publish new/changed ones.
+# Empty items clears the category. A 409 requires deliberate reconciliation.
 {% endif %}
