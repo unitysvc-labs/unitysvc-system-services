@@ -10,6 +10,7 @@ resolves on its own:
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
 | `me` | `me://user` | answers `/me/profile` (the default resource) from the routing context, valued by the caller's `service:me` grant; forwards writes to the backend |
+| `log` | `log://enrollment` | records entries in an enrollment's activity log at or above the `service:log` grant's `log_level`; forwards reads to the backend |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -148,9 +149,32 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me"
 # -> {"profile": {"research": {...}}}   (address.state absent if not set)
 ```
 
+## Log (`log://enrollment`)
+
+`log` records what an app did for one of the customer's enrollments in that
+enrollment's activity log (unitysvc/unitysvc#2662, #2720). The enrollment is
+named by the `X-UnitySVC-Enrollment` header. Like `me` it holds the customer's
+own data, so its `exports` declare exactly two permissions, `write`
+(`POST /`) and `read` (`GET /`), and no `invoke`: `service:*` and `*` never
+reach it. Its one option, `log_level` (`debug`, `info`, `warn`, `error`;
+default `debug`), is the lowest level a grant records: the gateway drops
+entries below it and reports them as `dropped`. Writes are handled by the
+gateway end to end (Kafka → ClickHouse); reads are forwarded to the backend,
+which lists the enrollment's entries newest first. `log` is not billed. It is a
+full spec under `services/specs/log/`.
+
+```bash
+# key policy: {"object": "service:log", "permissions": ["write"], "options": "log_level=info"}
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" -H "X-UnitySVC-Enrollment: AB3D9K" \
+     -H "Content-Type: application/json" \
+     -d '[{"level":"debug","message":"start"},{"level":"info","message":"Checked 214 listings"}]' \
+     "$API_GATEWAY_BASE_URL/log"
+# -> 202 {"accepted": 1, "dropped": 1, "entry_ids": [...]}
+```
+
 ## Repository layout
 
-`notify`, `ai`, `email` and `me` are full specs (`services/specs/<name>/` with `offering.json`,
+`notify`, `ai`, `email`, `me` and `log` are full specs (`services/specs/<name>/` with `offering.json`,
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered

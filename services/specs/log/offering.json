@@ -1,0 +1,55 @@
+{
+  "description": "`log` records what an app you authorize did for one of your enrollments (\"checked 214 listings, 3 matched\") in that enrollment's activity log, and, only if you also allow it, reads the log back.\n\nThe gateway answers `log` itself (`log://enrollment`): there is no upstream. A write is one entry `{\"level\", \"message\", \"attributes\"}` or an array of up to 100; the gateway validates them, stamps your account, the enrollment and its own receipt time, and records them; you read them under the enrollment's **Activity** in the dashboard. The enrollment is named by the `X-UnitySVC-Enrollment` header and must be one your key may see. `log` holds your own data, so its exports declare two permissions and nothing else: `write` records entries and `read` lists them. `invoke`, and the `service:*` and `*` wildcards that stand for it, never reach `log`. A grant's `log_level` option is the lowest level it records (`debug`, `info`, `warn` or `error`, default `debug`): entries below it are dropped and counted as `dropped` in the answer. Entries are kept 90 days. `log` is not billed.\n\n`POST /log` with a UnitySVC key whose policy grants `service:log` with `write`, e.g. `{\"object\": \"service:log\", \"permissions\": [\"write\"], \"options\": \"log_level=info\"}`, and the header `X-UnitySVC-Enrollment: <code>`; the answer is `202 {\"accepted\": n, \"dropped\": m, \"entry_ids\": [...]}`. `GET /log` with the same header and a key that holds `read` lists the newest entries first, filtered by `level`, `since`, `until` and `limit`, and paged by passing the answer's `next_cursor` back as `before`.",
+  "details": {},
+  "exports": {
+    "options": {
+      "properties": {
+        "log_level": {
+          "default": "debug",
+          "description": "The lowest level this grant records: entries below it are dropped. Unset records every level.",
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ],
+          "title": "Lowest level recorded",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "options_ui_schema": {
+      "log_level": {
+        "ui:widget": "radio"
+      }
+    },
+    "permissions": {
+      "read": [
+        "GET /"
+      ],
+      "write": [
+        "POST /"
+      ]
+    }
+  },
+  "logo": "https://api.iconify.design/lucide:scroll-text.svg?color=%233B82F6",
+  "name": "log",
+  "payout_price": {
+    "description": "Not billed: recording and reading your own activity log is free",
+    "price": "0",
+    "type": "constant"
+  },
+  "service_type": "gateway",
+  "status": "ready",
+  "summary": "Let an app record what it did for one of your enrollments in that enrollment's activity log through `/log`, and read it back only if you also allow it.",
+  "time_created": "2026-10-27T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "log://enrollment",
+      "is_active": true
+    }
+  }
+}

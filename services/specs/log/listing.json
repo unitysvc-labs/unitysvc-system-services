@@ -1,0 +1,41 @@
+{
+  "currency": "USD",
+  "display_name": "Log",
+  "documents": {
+    "Connectivity test": {
+      "category": "connectivity_test",
+      "description": "GET /log with the test key and expect the gateway's own answer",
+      "file_path": "connectivity.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "mime_type": "bash"
+    },
+    "Python code example": {
+      "category": "code_example",
+      "description": "Python (httpx) example: record an entry in an enrollment's activity log through /log, then read the log back",
+      "file_path": "code-example.py.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "requirements": [
+          "httpx"
+        ]
+      },
+      "mime_type": "python"
+    }
+  },
+  "list_price": {
+    "description": "Free | recording and reading your own activity log is not billed",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "log",
+  "status": "ready",
+  "time_created": "2026-10-27T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "http",
+      "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
+    }
+  }
+}
