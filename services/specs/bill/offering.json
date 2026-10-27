@@ -1,0 +1,47 @@
+{
+  "description": "`bill` lets a seller's app charge you per use for work delivered outside the gateway, against the one enrollment you gave it a key for, at that service's own price.\n\nThe gateway answers `bill` itself (`bill://enrollment`): there is no upstream. A charge is `{\"units\": N, \"description\": ...}` with an `Idempotency-Key` from the seller's own records. The gateway checks the calling key's `service:bill` grant, takes the enrollment from the key (a key bound to that enrollment), records the charge and answers `202` with a receipt, `{\"charge_id\", \"status\": \"received\"}`; the receipt is the only confirmation, so sellers keep their own records. The platform then bills the charge as `units` of the enrollment's own service, at that service's price, and pays its seller, like any other call. The same `Idempotency-Key` never bills twice. `bill` moves money, so it exports three permissions and nothing else: `charge` records charges, `refund` gives units of an earlier charge back, and `query` lists the enrollment's charges with their status. `invoke`, and the `service:*` and `*` wildcards that stand for it, never reach `bill`, and only a key bound to an enrollment may hold a `service:bill` grant, so you can't be billed through a key you use yourself. The grant's `max_units_per_charge` option caps the units of one charge. `bill` itself is free.\n\n`POST /bill` with a key bound to the enrollment whose policy grants `service:bill` with `charge`, e.g. `{\"object\": \"service:bill\", \"permissions\": [\"charge\", \"query\"], \"options\": \"max_units_per_charge=5\"}`, and an `Idempotency-Key` header; the answer is `202 {\"charge_id\": ..., \"status\": \"received\"}`. `POST /bill/refund` with `{\"charge_id\": ..., \"units\": N}` (all remaining units when omitted) and an `Idempotency-Key` gives units back with `refund`. `GET /bill` with `query` lists the enrollment's charges and refunds, newest first, with their status (`billed`, `refused`), paged by `next_cursor` passed back as `before`.",
+  "details": {},
+  "exports": {
+    "options": {
+      "properties": {
+        "max_units_per_charge": {
+          "description": "The most units one charge may carry. Unset: no per-charge cap.",
+          "minimum": 1,
+          "title": "Most units per charge",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "permissions": {
+      "charge": [
+        "POST /"
+      ],
+      "query": [
+        "GET /"
+      ],
+      "refund": [
+        "POST /refund"
+      ]
+    }
+  },
+  "logo": "https://api.iconify.design/lucide:receipt.svg?color=%233B82F6",
+  "name": "bill",
+  "payout_price": {
+    "description": "Not billed: each charge is priced by the enrollment's own service",
+    "price": "0",
+    "type": "constant"
+  },
+  "service_type": "gateway",
+  "status": "ready",
+  "summary": "Let an app you gave a key charge you per use through `/bill`, against one of your enrollments, at that service's own price.",
+  "time_created": "2026-10-27T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "bill://enrollment",
+      "is_active": true
+    }
+  }
+}

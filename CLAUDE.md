@@ -1,7 +1,7 @@
 # CLAUDE.md — unitysvc-system-services
 
 System services: `resp*` (`resp://`), `notify` (`notify://user`), `ai`
-(`ai://preference`), `me` (`me://user`), `log` (`log://enrollment`), and the experimental, private
+(`ai://preference`), `me` (`me://user`), `log` (`log://enrollment`), `bill` (`bill://enrollment`), and the experimental, private
 `home` (`home://customer`) and `storage` (`storage://enrollment`). None has a seller upstream; the gateway resolves each reserved
 scheme itself. See README.md.
 

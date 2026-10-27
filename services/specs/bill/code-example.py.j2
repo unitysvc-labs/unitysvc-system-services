@@ -1,0 +1,41 @@
+import os
+import sys
+
+import httpx
+
+# Charge a customer for work you delivered, through the UnitySVC gateway
+# (bill). Use the key the customer bound to their enrollment for your app;
+# its policy grants service:bill, e.g.
+#   {"object": "service:bill", "permissions": ["charge", "query"],
+#    "options": "max_units_per_charge=5"}
+# The 202 receipt is the only confirmation: keep it in your own records. The
+# charge is billed as `units` of the enrollment's own service, at its price.
+# Retrying with the same Idempotency-Key never bills twice.
+{% if local_testing %}
+# bill is gateway-native (bill://enrollment): there is no seller upstream to
+# call in local mode, so this branch only confirms wiring.
+print("charged (skipped: gateway-native bill://enrollment, no upstream)")
+sys.exit(0)
+{% else %}
+key = os.environ.get("UNITYSVC_BILL_KEY")
+if not key:
+    print("charged (skipped: set UNITYSVC_BILL_KEY to a key bound to an enrollment)")
+    sys.exit(0)
+headers = {"Authorization": f"Bearer {key}"}
+
+receipt = httpx.post(
+    "{{ service_base_url }}",
+    # From your own records, so a retry after a timeout bills once.
+    headers={**headers, "Idempotency-Key": "run-6f1c"},
+    json={"units": 3, "description": "Run 6f1c: checked 214 listings"},
+    timeout=15,
+)
+receipt.raise_for_status()
+print(receipt.json())  # {"charge_id": "...", "status": "received"}
+
+# Billing happens shortly after; list the enrollment's charges and status.
+page = httpx.get("{{ service_base_url }}", headers=headers, params={"limit": 10}, timeout=15)
+page.raise_for_status()
+for charge in page.json()["data"]:
+    print(charge["created_at"], charge["kind"], charge["units"], charge["status"], charge["description"])
+{% endif %}
