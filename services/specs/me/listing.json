@@ -4,7 +4,7 @@
   "documents": {
     "Connectivity test": {
       "category": "connectivity_test",
-      "description": "Read profile, intents and preferences; verify each resource wrapper without changing account data",
+      "description": "Bash + curl + Python 3: read profile, intents and preferences without changing account data",
       "file_path": "connectivity.sh.j2",
       "is_active": true,
       "is_public": true,
@@ -12,7 +12,7 @@
     },
     "How to use this service": {
       "category": "getting_started",
-      "description": "Resource shapes, category grants, read/write examples, publication restrictions and rollout prerequisites",
+      "description": "Resource shapes, category grants, read/write examples, publication restrictions and availability",
       "file_path": "me-description.md",
       "is_active": true,
       "is_public": true,

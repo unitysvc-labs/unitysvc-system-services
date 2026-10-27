@@ -55,12 +55,10 @@ with names. Enrollment-bound/delegated policies must name categories and cannot
 use `profile=*`, `intents=*`, or `preferences=*`.
 
 `me` exports `read` and `write`, with no `invoke`. Broad `service:*` or `*`
-authority does not substitute for an explicit `service:me` grant. The current
-general routing-authentication gate additionally requires a companion
-`service:*` grant on manual unbound keys. Enrollment-bound app access still
-depends on the common named-grant authentication work; accepting a policy at
-issuance does not by itself make that route usable. This service does not relax
-that gate.
+authority does not substitute for an explicit `service:me` grant. Currently
+supported access uses manually created, unbound keys configured for service
+access. Enrollment-bound app access is not yet available; acceptance of a grant
+at key issuance does not itself enable that access.
 
 ## Read a resource or category
 
@@ -169,18 +167,18 @@ The file's access policy remains independent: marking an item public never
 changes file permissions, and receiving a URL does not guarantee download
 access. No anonymous public-content endpoint is added by these fields.
 
-## Privacy, caching and rollout
+## Privacy and caching
 
 Reads and writes are private/no-store and unbilled. The gateway refreshes the
 key-scoped routing context after owner or service changes. `/m/` caching is
 disabled for every `me://` resource, including alias/enrollment routes.
 
-Deploy the additive backend support first, then the enforcing gateway, and only
-then publish these expanded service exports. Do not expose new options while
-an older component can ignore their restrictions. On rollback, disable new
-issuance/unpublish the expanded exports before rolling back enforcement;
-preserve the stored columns and data. Full enrollment-bound app availability
-must be verified after the general named-grant foundation is enabled.
+## Connectivity test
+
+The supplied Bash connectivity probe requires `curl` and Python 3. It uses only
+Python's standard library to validate the three JSON resource wrappers, and
+reads without changing account data. Set `UNITYSVC_API_KEY` before running it;
+a missing or invalid key produces an authentication failure.
 
 The implementation design and related repositories are tracked in
 [unitysvc#2707](https://github.com/unitysvc/unitysvc/issues/2707).

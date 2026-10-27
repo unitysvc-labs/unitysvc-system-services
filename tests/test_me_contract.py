@@ -7,6 +7,7 @@ validation: python -m unittest discover -s tests -v.
 import json
 import os
 import subprocess
+import sys
 import unittest
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -73,6 +74,16 @@ class MeExportsTests(unittest.TestCase):
                 ):
                     self.claim(f"{resource}={invalid}")
 
+    def test_profile_wildcard_and_dotted_paths_remain_valid(self):
+        for options in (
+            "profile=*",
+            "profile=address.state",
+            "profile=research,address.state,address.postal_code",
+            "profile=address.state&intents=travel&preferences=reading",
+        ):
+            with self.subTest(options=options):
+                self.claim(options)
+
     def test_manual_wildcard_is_sole_selector(self):
         # Enrollment/delegation restrictions need issuer context and are enforced
         # by the backend; the published schema handles the selector shape.
@@ -111,7 +122,7 @@ class MeDocumentsTests(unittest.TestCase):
     def test_local_mode_has_no_upstream(self):
         for name, command in (
             ("connectivity.sh.j2", ["bash"]),
-            ("code-example.py.j2", [os.sys.executable]),
+            ("code-example.py.j2", [sys.executable]),
         ):
             with self.subTest(name=name):
                 result = subprocess.run(
@@ -132,6 +143,11 @@ class MeDocumentsTests(unittest.TestCase):
         class Handler(BaseHTTPRequestHandler):
             def do_GET(self):
                 calls.append(self.path)
+                if self.headers.get("Authorization") != "Bearer contract-test":
+                    self.send_response(401)
+                    self.end_headers()
+                    self.wfile.write(b'{"detail":"Unauthorized"}')
+                    return
                 resource = self.path.rsplit("/", 1)[-1]
                 self.send_response(200)
                 self.end_headers()
@@ -157,6 +173,22 @@ class MeDocumentsTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(calls, ["/me/profile", "/me/intents", "/me/preferences"])
+            no_key = {
+                name: value
+                for name, value in os.environ.items()
+                if name != "UNITYSVC_API_KEY"
+            }
+            result = subprocess.run(
+                ["bash"],
+                input=script,
+                text=True,
+                capture_output=True,
+                timeout=20,
+                env=no_key,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("HTTP 401", result.stderr)
+            self.assertNotIn("unbound variable", result.stderr)
         finally:
             server.shutdown()
             server.server_close()

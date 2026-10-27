@@ -2,6 +2,7 @@
 # Connectivity test for me's canonical interface: the gateway-native me://user
 # scheme. There is no seller upstream. Read each resource without changing data;
 # an unreadable/unset resource still returns its empty object wrapper.
+# Requires Bash, curl, and Python 3 (standard library only).
 set -euo pipefail
 
 {% if local_testing %}
@@ -9,12 +10,20 @@ echo "connectivity ok (gateway-native me://user, no upstream)"
 {% else %}
 BASE_URL="{{ service_base_url }}"
 
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "connectivity failed: python3 is required to validate JSON responses" >&2
+    exit 1
+fi
+
 for resource in profile intents preferences; do
 URL="${BASE_URL%/}/$resource"
-response=$(curl -sS --max-time 30 \
-    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+if ! response=$(curl -sS --max-time 30 \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY:-}" \
     -w "\n%{http_code}" \
-    "$URL" 2>/dev/null)
+    "$URL" 2>/dev/null); then
+    echo "connectivity failed: could not connect to $URL" >&2
+    exit 1
+fi
 status="${response##*$'\n'}"
 body="${response%$'\n'*}"
 

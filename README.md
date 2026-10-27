@@ -138,9 +138,9 @@ separate `profile`, `intents` and `preferences` options, all defaulting to nothi
 one permission set applies to every selected resource. A granted category reveals
 its private/public items and later additions. Absent and ungranted values both
 look absent. Request query parameters cannot widen a grant. Broad `service:*` or
-`*` never substitutes for the explicit named grant; the current general routing
-gate additionally requires companion `service:*` on manual unbound keys.
-Enrollment-bound app access depends on the shared named-grant foundation.
+`*` never substitutes for the explicit named grant. Currently supported access
+uses manually created, unbound keys configured for service access;
+enrollment-bound app access is not yet available.
 
 Reads are projected by the gateway from the key-scoped context. Profile writes
 merge one section; `POST /me/intents/<category>` and
@@ -150,8 +150,7 @@ publication authority: new/changed public records require an authorized owner
 write. Success acknowledges only `{"name":"<category>"}`. `me` is private/no-store,
 excluded from `/m/` caching, and unbilled. See the
 [service guide](services/specs/me/me-description.md) for shapes, limits, grants,
-attachments and deployment order. Deploy backend and gateway enforcement before
-publishing these expanded exports.
+and attachment references.
 
 ```bash
 # key policy: {"object": "service:me", "permissions": ["read"], "options": "profile=research,address.state"}
@@ -165,9 +164,10 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me/inte
 
 The published grant schema and rendered read-only probes have local contract
 tests (also run by the **Me contract** workflow). In an environment containing
-`unitysvc-core>=0.2.37`, `jinja2`, and `httpx`, run
+`unitysvc-core>=0.2.37,<0.3`, `jinja2`, and `httpx`, run
 `python -m unittest discover -s tests -v` alongside the usual
 `usvc_seller specs validate` and `usvc_seller specs format --check` checks.
+The Bash connectivity probe needs `curl` and Python 3 (standard library only).
 
 ## Log (`log://enrollment`)
 
