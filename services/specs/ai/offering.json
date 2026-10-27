@@ -2,7 +2,7 @@
   "capabilities": [
     "chat"
   ],
-  "description": "`ai` answers an OpenAI chat request with the AI you've chosen as your AI preference: a `/p/llm` tier or another LLM service anyone on your account can call.\n\nThe gateway rewrites `/ai/...` to your preference, the way it rewrites an `/a/<name>` alias, then routes it like any other call, streaming included. The preference names one service: a `/p/llm` tier, an LLM service from the marketplace, or one of your aliases. A service is one model, so the app never picks the model. Services that require enrollment are refused, including `e/<code>` enrollments and services (or aliases pointing at them) that can only be reached through an enrollment, because an enrollment brings its own parameters and model choices. With none set, `/ai` uses `labs/llm-balanced` (`/p/llm`, `model=\"balanced\"`). A team key uses the team's own preference, or that default billed to the team, never a member's personal one. If the saved preference no longer resolves (a deleted alias, or a service that now requires enrollment), `/ai` answers 409 instead of silently using the default. `ai` itself is free: each call is billed by the service it resolves to, at that service's own price.\n\nPoint any OpenAI-compatible client at `/ai` with your UnitySVC key, and set your AI under **Your AI** in Preferences (or `PUT /v1/preferences/ai`). Switch provider or model there, without changing the app.",
+  "description": "`ai` answers an OpenAI chat request with the AI you've chosen as your AI preference: a `/p/llm` tier or another LLM service anyone on your account can call.\n\nThe gateway rewrites `/ai/...` to your preference, the way it rewrites an `/a/<name>` alias, then routes it like any other call, streaming included. The preference names one service: a `/p/llm` tier, an LLM service from the marketplace, or one of your aliases. A service is one model, so the app never picks the model. Services that require enrollment are refused, including `e/<code>` enrollments and services (or aliases pointing at them) that can only be reached through an enrollment, because an enrollment brings its own parameters and model choices. With none set, `/ai` uses `labs/llm-balanced` (`/p/llm`, `model=\"balanced\"`). A team key uses the team's own preference, or that default billed to the team, never a member's personal one. A key may override the preference: its `service:ai` grant's `service` option names a catalog service (never an alias or enrollment) that the key's `/ai` calls use instead, under the same rules. If the saved preference or the grant's service no longer resolves (a deleted alias, or a service that now requires enrollment), `/ai` answers 409 instead of silently using the default. `ai` itself is free: each call is billed by the service it resolves to, at that service's own price.\n\nPoint any OpenAI-compatible client at `/ai` with your UnitySVC key, and set your AI under **Your AI** in Preferences (or `PUT /v1/preferences/ai`). Switch provider or model there, without changing the app. To pin one app's key to a specific AI, give it a `service:ai` grant with `invoke` and, for example, the option `service=labs/llm-premium`; the response's `X-UnitySVC-AI-Scope` header is then `grant`.",
   "details": {
     "context_length": null,
     "input_formats": [
@@ -13,6 +13,22 @@
       "openai_response"
     ],
     "parameter_count": null
+  },
+  "exports": {
+    "options": {
+      "properties": {
+        "service": {
+          "description": "The catalog service this grant's /ai calls use instead of your AI preference, by its catalog name (labs/llm-premium, openai/gpt-5). It must be an active LLM service that accepts OpenAI chat requests and needs no enrollment; aliases (a/...), enrollments (e/...) and /ai itself are refused. Unset uses your (or your team's) AI preference.",
+          "not": {
+            "pattern": "^ai(/|$)"
+          },
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]+(/[A-Za-z0-9][A-Za-z0-9._-]+)*(@[A-Za-z0-9][A-Za-z0-9._-]*)?$",
+          "title": "AI service",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
   },
   "logo": "https://upload.wikimedia.org/wikipedia/commons/8/86/LLM-logo.svg",
   "name": "ai",
