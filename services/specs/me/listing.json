@@ -8,11 +8,6 @@
       "file_path": "connectivity.sh.j2",
       "is_active": true,
       "is_public": true,
-      "meta": {
-        "min_expected_metrics": {
-          "bytes_out": 1
-        }
-      },
       "mime_type": "bash"
     },
     "Python code example": {
@@ -22,9 +17,6 @@
       "is_active": true,
       "is_public": true,
       "meta": {
-        "min_expected_metrics": {
-          "bytes_out": 1
-        },
         "requirements": [
           "httpx"
         ]
