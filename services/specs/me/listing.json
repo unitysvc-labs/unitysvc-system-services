@@ -1,0 +1,41 @@
+{
+  "currency": "USD",
+  "display_name": "Me",
+  "documents": {
+    "Connectivity test": {
+      "category": "connectivity_test",
+      "description": "GET /me with the test key and expect a profile answer",
+      "file_path": "connectivity.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "mime_type": "bash"
+    },
+    "Python code example": {
+      "category": "code_example",
+      "description": "Python (httpx) example: read what your key may see of your profile through /me",
+      "file_path": "code-example.py.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "requirements": [
+          "httpx"
+        ]
+      },
+      "mime_type": "python"
+    }
+  },
+  "list_price": {
+    "description": "Free | reading and updating your own profile is not billed",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "me",
+  "status": "ready",
+  "time_created": "2026-10-26T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "http",
+      "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
+    }
+  }
+}

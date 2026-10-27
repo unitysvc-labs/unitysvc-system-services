@@ -9,6 +9,7 @@ resolves on its own:
 | `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
+| `me` | `me://user` | answers `/me/profile` (the default resource) from the routing context, valued by the caller's `service:me` grant; forwards writes to the backend |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -123,9 +124,33 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
      "$API_GATEWAY_BASE_URL/ai/chat/completions"
 ```
 
+## Me (`me://user`)
+
+`me` lets a key read, and with permission update, what its account knows about
+itself (unitysvc/unitysvc#2720). Today that is one resource, the `profile`,
+which is also the default: `/me` is `/me/profile`, and `/me/profile/<path>`
+reads one path. Unlike the services above it holds the customer's own data, so
+its `exports` declare exactly two permissions, `read` (`GET /`, `GET /profile`,
+`GET /profile/*`) and `write` (`POST /`, `POST /profile`), and no `invoke`:
+`service:*` and `*` never reach it. A grant's `profile` option lists the
+profile paths it covers (`research`, `address.state`) and defaults to nothing.
+A read returns everything the grant allows that the customer has set
+(`/me`), or one path of it (`/me/profile/<path>`); a value that isn't set and
+one the key may not read are both simply absent. No request parameter is read,
+so nothing can widen a grant. Reads are answered by the gateway from the
+routing context; writes are forwarded to the backend, which merges a whole
+listed section. `me` is not billed. It is a full spec under
+`services/specs/me/`.
+
+```bash
+# key policy: {"object": "service:me", "permissions": ["read"], "options": "profile=research,address.state"}
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me"
+# -> {"profile": {"research": {...}}}   (address.state absent if not set)
+```
+
 ## Repository layout
 
-`notify` and `ai` are full specs (`services/specs/<name>/` with `offering.json`,
+`notify`, `ai`, `email` and `me` are full specs (`services/specs/<name>/` with `offering.json`,
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered

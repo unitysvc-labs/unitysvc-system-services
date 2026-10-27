@@ -1,0 +1,28 @@
+import os
+import sys
+
+import httpx
+
+# Read what this key may see of your UnitySVC profile through the gateway
+# (me). The key's service:me grant decides it, e.g.
+#   {"object": "service:me", "permissions": ["read"],
+#    "options": "profile=research,address.state"}
+# A value you never set and one the key may not read are both absent.
+# GET /me/profile/<path> reads one path; /me is /me/profile.
+{% if local_testing %}
+# me is gateway-native (me://user): there is no seller upstream to call in
+# local mode, so this branch only confirms wiring.
+print("read (skipped: gateway-native me://user, no upstream)")
+sys.exit(0)
+{% else %}
+response = httpx.get(
+    "{{ service_base_url }}",
+    headers={"Authorization": f"Bearer {k}"} if (k := os.environ.get("UNITYSVC_API_KEY")) else {},
+)
+response.raise_for_status()
+profile = response.json()["profile"]
+if not profile:
+    print("(nothing readable with this key)")
+for name, data in profile.items():
+    print(f"{name}: {data}")
+{% endif %}
