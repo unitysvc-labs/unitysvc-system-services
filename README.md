@@ -134,19 +134,18 @@ its `exports` declare exactly two permissions, `read` (`GET /`, `GET /profile`,
 `GET /profile/*`) and `write` (`POST /`, `POST /profile`), and no `invoke`:
 `service:*` and `*` never reach it. A grant's `profile` option lists the
 profile paths it covers (`research`, `address.state`) and defaults to nothing.
-The grant is the customer's private choice, so a read never reveals it: the
-caller names the paths it wants (`?profile=...`), and every one is answered
-under `profile`, with a value where the grant covers it and it is set, and
-`null` (unspecified) otherwise. Reads are answered by the gateway from the
+A read returns everything the grant allows that the customer has set
+(`/me`), or one path of it (`/me/profile/<path>`); a value that isn't set and
+one the key may not read are both simply absent. No request parameter is read,
+so nothing can widen a grant. Reads are answered by the gateway from the
 routing context; writes are forwarded to the backend, which merges a whole
 listed section. `me` is not billed. It is a full spec under
 `services/specs/me/`.
 
 ```bash
-# key policy: {"object": "service:me", "permissions": ["read"], "options": "profile=research"}
-curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
-     "$API_GATEWAY_BASE_URL/me?profile=research,address.state"
-# -> {"profile": {"research": {...}, "address": {"state": null}}}
+# key policy: {"object": "service:me", "permissions": ["read"], "options": "profile=research,address.state"}
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me"
+# -> {"profile": {"research": {...}}}   (address.state absent if not set)
 ```
 
 ## Repository layout

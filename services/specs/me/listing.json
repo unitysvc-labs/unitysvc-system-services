@@ -4,7 +4,7 @@
   "documents": {
     "Connectivity test": {
       "category": "connectivity_test",
-      "description": "GET /me/profile with the test key and expect a profile answer for the requested paths",
+      "description": "GET /me with the test key and expect a profile answer",
       "file_path": "connectivity.sh.j2",
       "is_active": true,
       "is_public": true,
@@ -17,7 +17,7 @@
     },
     "Python code example": {
       "category": "code_example",
-      "description": "Python (httpx) example: read the profile paths you ask for through /me",
+      "description": "Python (httpx) example: read what your key may see of your profile through /me",
       "file_path": "code-example.py.j2",
       "is_active": true,
       "is_public": true,
