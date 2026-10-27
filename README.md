@@ -8,7 +8,7 @@ resolves on its own:
 | ------- | -------- | --------------------- |
 | `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
-| `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
+| `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, or the `service:ai` grant's `service` option, then routes it |
 | `me` | `me://user` | projects profile, intents and matching preferences from the routing context within the caller's `service:me` grant; forwards writes to the backend |
 | `log` | `log://enrollment` | records entries in an enrollment's activity log at or above the `service:log` grant's `log_level`; forwards reads to the backend |
 
@@ -117,6 +117,23 @@ key uses the team's preference, never a member's. `ai` is free; each call is
 billed by the service it resolves to. A preference that no longer resolves
 answers 409. It is a full spec under
 `services/specs/ai/`.
+
+`ai` keeps the implicit `invoke` (its `exports` declare no `permissions`, so
+`service:*` still reaches it) and exports one option, `service`. A key's
+`service:ai` grant can set it to override the preference for that key's calls,
+for example to pin an app, or a seller's approved access request, to the AI it
+was built for:
+
+```json
+{"object": "service:ai", "permissions": ["invoke"], "options": "service=labs/llm-premium"}
+```
+
+The value is a catalog service name, never an `a/` alias, `e/` enrollment or
+`/ai` itself. The backend checks at issuance that `/ai` can route to it (active,
+no enrollment needed, accepts OpenAI chat) and resolves it in place of the
+preference, with `X-UnitySVC-AI-Scope: grant`. A grant service that no longer
+resolves answers 409; it never falls back to the preference
+(unitysvc/unitysvc#2754).
 
 ```bash
 curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \

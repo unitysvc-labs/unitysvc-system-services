@@ -6,7 +6,8 @@ from openai import OpenAI
 # Ask your own AI a question through the UnitySVC gateway (ai). /ai answers
 # with whatever you've set as your AI preference (a /p/llm tier or another
 # LLM service), so this code never names a provider. Change
-# the preference, not the code, to switch.
+# the preference, not the code, to switch. A key whose service:ai grant sets
+# the service option (service=labs/llm-premium) uses that service instead.
 {% if local_testing %}
 # ai is gateway-native (ai://preference): there is no seller upstream to call in
 # local mode, so this branch only confirms wiring.
