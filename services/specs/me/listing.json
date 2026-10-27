@@ -4,15 +4,23 @@
   "documents": {
     "Connectivity test": {
       "category": "connectivity_test",
-      "description": "GET /me with the test key and expect a profile answer",
+      "description": "Bash + curl + Python 3: read profile, intents and preferences without changing account data",
       "file_path": "connectivity.sh.j2",
       "is_active": true,
       "is_public": true,
       "mime_type": "bash"
     },
+    "How to use this service": {
+      "category": "getting_started",
+      "description": "Resource shapes, category grants, read/write examples, publication restrictions and availability",
+      "file_path": "me-description.md",
+      "is_active": true,
+      "is_public": true,
+      "mime_type": "markdown"
+    },
     "Python code example": {
       "category": "code_example",
-      "description": "Python (httpx) example: read what your key may see of your profile through /me",
+      "description": "Python (httpx): read granted resources and replace one category with an explicit helper call",
       "file_path": "code-example.py.j2",
       "is_active": true,
       "is_public": true,
@@ -25,7 +33,7 @@
     }
   },
   "list_price": {
-    "description": "Free | reading and updating your own profile is not billed",
+    "description": "Free | reading and updating your own profile, intents and matching preferences is not billed",
     "price": "0",
     "type": "constant"
   },

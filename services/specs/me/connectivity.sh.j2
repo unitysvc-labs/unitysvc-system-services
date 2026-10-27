@@ -1,21 +1,29 @@
 #!/bin/bash
 # Connectivity test for me's canonical interface: the gateway-native me://user
-# scheme (unitysvc/apisix-gateways#77). There is NO seller upstream: the gateway
-# answers a read itself from the caller's routing context: everything the
-# key's service:me grant allows that is set. Any valid key gets a
-# {"profile": ...} answer (empty without a grant), so this proves the route;
-# its content depends on the test key's grant and profile.
-set -o pipefail
+# scheme. There is no seller upstream. Read each resource without changing data;
+# an unreadable/unset resource still returns its empty object wrapper.
+# Requires Bash, curl, and Python 3 (standard library only).
+set -euo pipefail
 
 {% if local_testing %}
 echo "connectivity ok (gateway-native me://user, no upstream)"
 {% else %}
-URL="{{ service_base_url }}"
+BASE_URL="{{ service_base_url }}"
 
-response=$(curl -sS --max-time 30 \
-    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "connectivity failed: python3 is required to validate JSON responses" >&2
+    exit 1
+fi
+
+for resource in profile intents preferences; do
+URL="${BASE_URL%/}/$resource"
+if ! response=$(curl -sS --max-time 30 \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY:-}" \
     -w "\n%{http_code}" \
-    "$URL" 2>/dev/null)
+    "$URL" 2>/dev/null); then
+    echo "connectivity failed: could not connect to $URL" >&2
+    exit 1
+fi
 status="${response##*$'\n'}"
 body="${response%$'\n'*}"
 
@@ -25,10 +33,21 @@ case "$status" in
   *)   echo "connectivity failed: HTTP $status from $URL: ${body}" >&2; exit 1 ;;
 esac
 
-if printf '%s' "$body" | grep -q '"profile"'; then
-    echo "connectivity ok — /me answered with the profile this key may read"
-    exit 0
+if ! printf '%s' "$body" | python3 -c '
+import json
+import sys
+
+resource = sys.argv[1]
+try:
+    answer = json.load(sys.stdin)
+    valid = isinstance(answer, dict) and set(answer) == {resource} and isinstance(answer[resource], dict)
+except (ValueError, TypeError):
+    valid = False
+sys.exit(0 if valid else 1)
+' "$resource"; then
+    echo "connectivity failed: HTTP $status from $URL but invalid $resource wrapper" >&2
+    exit 1
 fi
-echo "connectivity failed: HTTP $status from $URL but no profile in the body: ${body}" >&2
-exit 1
+done
+echo "connectivity ok — profile, intents and preferences returned resource objects"
 {% endif %}

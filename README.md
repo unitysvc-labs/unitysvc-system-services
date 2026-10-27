@@ -9,7 +9,7 @@ resolves on its own:
 | `resp200` … `resp503` | `resp://<status>` | returns that status itself; no upstream is contacted |
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, then routes it |
-| `me` | `me://user` | answers `/me/profile` (the default resource) from the routing context, valued by the caller's `service:me` grant; forwards writes to the backend |
+| `me` | `me://user` | projects profile, intents and matching preferences from the routing context within the caller's `service:me` grant; forwards writes to the backend |
 | `log` | `log://enrollment` | records entries in an enrollment's activity log at or above the `service:log` grant's `log_level`; forwards reads to the backend |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
@@ -127,27 +127,47 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
 
 ## Me (`me://user`)
 
-`me` lets a key read, and with permission update, what its account knows about
-itself (unitysvc/unitysvc#2720). Today that is one resource, the `profile`,
-which is also the default: `/me` is `/me/profile`, and `/me/profile/<path>`
-reads one path. Unlike the services above it holds the customer's own data, so
-its `exports` declare exactly two permissions, `read` (`GET /`, `GET /profile`,
-`GET /profile/*`) and `write` (`POST /`, `POST /profile`), and no `invoke`:
-`service:*` and `*` never reach it. A grant's `profile` option lists the
-profile paths it covers (`research`, `address.state`) and defaults to nothing.
-A read returns everything the grant allows that the customer has set
-(`/me`), or one path of it (`/me/profile/<path>`); a value that isn't set and
-one the key may not read are both simply absent. No request parameter is read,
-so nothing can widen a grant. Reads are answered by the gateway from the
-routing context; writes are forwarded to the backend, which merges a whole
-listed section. `me` is not billed. It is a full spec under
-`services/specs/me/`.
+`me` lets a key read, and with permission update, its Customer account's profile,
+intents and matching preferences (unitysvc/unitysvc#2720, #2707). `/me` remains
+the `/me/profile` alias. Profile paths keep their dotted syntax; `/me/intents`
+and `/me/preferences` expose categories of `{text, public, attachments?}` items.
+These matching preferences are separate from operational settings.
+
+The service exports exactly `read` and `write`, with no `invoke`. Each grant has
+separate `profile`, `intents` and `preferences` options, all defaulting to nothing;
+one permission set applies to every selected resource. A granted category reveals
+its private/public items and later additions. Absent and ungranted values both
+look absent. Request query parameters cannot widen a grant. Broad `service:*` or
+`*` never substitutes for the explicit named grant. Currently supported access
+uses manually created, unbound keys configured for service access;
+enrollment-bound app access is not yet available.
+
+Reads are projected by the gateway from the key-scoped context. Profile writes
+merge one section; `POST /me/intents/<category>` and
+`POST /me/preferences/<category>` with `{"data":[...]}` replace a whole category,
+including items entered by the owner or another app. All service writes lack
+publication authority: new/changed public records require an authorized owner
+write. Success acknowledges only `{"name":"<category>"}`. `me` is private/no-store,
+excluded from `/m/` caching, and unbilled. See the
+[service guide](services/specs/me/me-description.md) for shapes, limits, grants,
+and attachment references.
 
 ```bash
 # key policy: {"object": "service:me", "permissions": ["read"], "options": "profile=research,address.state"}
 curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me"
 # -> {"profile": {"research": {...}}}   (address.state absent if not set)
+
+# key policy: {"object": "service:me", "permissions": ["read"], "options": "intents=travel&preferences=reading"}
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" "$API_GATEWAY_BASE_URL/me/intents/travel"
+# -> {"intents": {"travel": [{"text": "Visit Japan next spring.", "public": false}]}}
 ```
+
+The published grant schema and rendered read-only probes have local contract
+tests (also run by the **Me contract** workflow). In an environment containing
+`unitysvc-core>=0.2.37,<0.3`, `jinja2`, and `httpx`, run
+`python -m unittest discover -s tests -v` alongside the usual
+`usvc_seller specs validate` and `usvc_seller specs format --check` checks.
+The Bash connectivity probe needs `curl` and Python 3 (standard library only).
 
 ## Log (`log://enrollment`)
 
