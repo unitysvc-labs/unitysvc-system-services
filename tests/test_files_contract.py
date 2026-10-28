@@ -49,6 +49,7 @@ class FilesExportsTests(unittest.TestCase):
             "path=inputs/",
             "path=inputs/datasets/,projects/project-x/",
             "path=a.b/c_d-e/",
+            "path=" + "x" * 255 + "/",
             "path=*",
             f"path={folders}",
         ):
@@ -71,6 +72,8 @@ class FilesExportsTests(unittest.TestCase):
             "inputs/,inputs/",
             ",".join(f"f{index}/" for index in range(33)),
             "x" * 512 + "/",
+            "inputs/a..b/",
+            "x" * 256 + "/",
         ):
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 claim("home", f"path={invalid}")

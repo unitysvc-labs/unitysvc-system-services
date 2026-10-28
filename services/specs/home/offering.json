@@ -6,7 +6,7 @@
       "properties": {
         "path": {
           "default": [],
-          "description": "Folders of the customer's home this grant covers, relative to it, each ending in / (inputs/datasets/). A folder covers everything beneath it and nothing beside it: inputs/ does not cover inputs-old/. Unset grants nothing. A sole * covers the whole home, only for a manually created unbound key; never mix * with folders or use it for an enrollment-bound/delegated key. The grant permissions apply to every folder.",
+          "description": "Folders of the customer's home this grant covers, relative to it, each ending in / (inputs/datasets/); segments of 1-255 letters, digits, ., _ or -, not starting with ., and no '..'. A folder covers everything beneath it and nothing beside it: inputs/ does not cover inputs-old/. Unset grants nothing. A sole * covers the whole home, only for a manually created unbound key; never mix * with folders or use it for an enrollment-bound/delegated key. The grant permissions apply to every folder.",
           "items": {
             "type": "string"
           },
@@ -24,7 +24,10 @@
             {
               "items": {
                 "maxLength": 512,
-                "pattern": "^([A-Za-z0-9_-][A-Za-z0-9._-]*/)+$"
+                "not": {
+                  "pattern": "\\.\\."
+                },
+                "pattern": "^([A-Za-z0-9_-][A-Za-z0-9._-]{0,254}/)+$"
               }
             }
           ],

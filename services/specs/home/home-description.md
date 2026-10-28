@@ -29,7 +29,8 @@ reach it. Use an explicit `service:home` grant:
 | `write` | `put`, `post`, `delete` |
 
 `path` lists up to 32 folders, relative to your home, each ending in `/`. A
-segment is letters, digits, `.`, `_` and `-`, and does not start with `.`. A
+segment is 1-255 letters, digits, `.`, `_` and `-`, does not start with `.`,
+and no folder contains `..`. A
 folder covers everything beneath it and nothing beside it: `inputs/` does not
 cover `inputs-old/`. A grant without `path` covers nothing. A sole `*` covers
 the whole home, only on a key you created yourself and did not bind to an
@@ -59,6 +60,9 @@ relative to your home. Answers are `private, no-store` and never cached by
   issued. Downloads are served as attachments.
 - One upload is at most the platform's per-object ceiling (1 GiB by default),
   which the signed request enforces.
+- File paths: segments of 1-255 characters, no leading or trailing spaces,
+  backslashes or control characters, and no `..` or `${` anywhere. Every
+  operation accepts exactly the same paths.
 
 | Status | Meaning |
 | --- | --- |
