@@ -1,0 +1,32 @@
+#!/bin/bash
+# Connectivity test for home's canonical interface: the gateway-native
+# home://customer scheme. There is NO seller upstream: the gateway answers
+# itself (through the backend, which authorizes the key's service:home grant).
+# A listing needs a service:home grant with read, which a test key need not
+# have, so any of home's own answers proves the route: 200 with a listing, or
+# 403 naming the missing service:home grant. Nothing is written.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (gateway-native home://customer, no upstream)"
+{% else %}
+URL="{{ service_base_url }}"
+URL="${URL%/}/list"
+
+response=$(curl -sS --max-time 30 \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d '{"path": ""}' \
+    -w "\n%{http_code}" \
+    "$URL" 2>/dev/null)
+status="${response##*$'\n'}"
+body="${response%$'\n'*}"
+
+case "$status" in
+  200) printf '%s' "$body" | grep -q '"folders"' && { echo "connectivity ok — /home listed"; exit 0; } ;;
+  403) printf '%s' "$body" | grep -q 'service:home' && { echo "connectivity ok — /home answered (this key has no service:home read grant)"; exit 0; } ;;
+  000) echo "connectivity failed: could not connect to $URL" >&2; exit 1 ;;
+esac
+echo "connectivity failed: HTTP $status from $URL is not home's own answer: ${body}" >&2
+exit 1
+{% endif %}

@@ -1,0 +1,69 @@
+{
+  "description": "`home` lets an app you authorize list and download the files in the folders of your account's home you choose, and upload or delete files there only if you also allow it.\n\nThe gateway answers `home` itself (`home://customer`): there is no upstream, and file bytes never pass through it. Your home is `home/{customer_id}/` in private UnitySVC storage, the same for an individual and an organization. A call is a control request (`list`, `get`, `put`, `post`, `delete`) that the backend authorizes against the calling key's `service:home` grant: it computes the object key itself and answers either a listing or a short-lived presigned URL that the client uses to move the bytes directly to or from storage. `home` holds your own data, so its exports declare two permissions and nothing else: `read` (list, get) and `write` (put, post, delete). `invoke`, and the `service:*` and `*` wildcards that stand for it, never reach `home`. The grant's `path` option names the folders it covers, relative to your home (`inputs/datasets/`); a grant covers those folders and everything beneath them, nothing beside them, and with no `path` it covers nothing. Two grants naming the same folder read the same files: sharing an input never copies it. `home` is not billed while it is experimental.\n\n`POST /home/list` with `{\"path\": \"inputs/\"}` and a UnitySVC key whose policy grants `service:home`, e.g. `{\"object\": \"service:home\", \"permissions\": [\"read\"], \"options\": \"path=inputs/,projects/x/\"}`, lists that folder. `POST /home/get` with `{\"path\": \"inputs/a.csv\"}` answers a download URL; `POST /home/put` with `{\"path\", \"content_type\", \"size\"}` (or `POST /home/post` for a browser form upload) answers an upload ticket, and `POST /home/delete` removes a file; the last three need `write`. See How to use this service for the request and answer shapes.",
+  "details": {},
+  "exports": {
+    "options": {
+      "properties": {
+        "path": {
+          "default": [],
+          "description": "Folders of the customer's home this grant covers, relative to it, each ending in / (inputs/datasets/). A folder covers everything beneath it and nothing beside it: inputs/ does not cover inputs-old/. Unset grants nothing. A sole * covers the whole home, only for a manually created unbound key; never mix * with folders or use it for an enrollment-bound/delegated key. The grant permissions apply to every folder.",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "oneOf": [
+            {
+              "items": {
+                "enum": [
+                  "*"
+                ]
+              },
+              "maxItems": 1,
+              "minItems": 1
+            },
+            {
+              "items": {
+                "maxLength": 512,
+                "pattern": "^([A-Za-z0-9_-][A-Za-z0-9._-]*/)+$"
+              }
+            }
+          ],
+          "title": "Folders",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "permissions": {
+      "read": [
+        "POST /list",
+        "POST /get"
+      ],
+      "write": [
+        "POST /put",
+        "POST /post",
+        "POST /delete"
+      ]
+    }
+  },
+  "logo": "https://api.iconify.design/lucide:folder-open.svg?color=%233B82F6",
+  "name": "home",
+  "payout_price": {
+    "description": "Not billed (yet): reaching your own files is free while the service is experimental",
+    "price": "0",
+    "type": "constant"
+  },
+  "service_type": "gateway",
+  "status": "ready",
+  "summary": "Let an app read the folders of your files you choose through `/home`, and change them only if you also allow it.",
+  "time_created": "2026-10-27T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "home://customer",
+      "is_active": true
+    }
+  }
+}
