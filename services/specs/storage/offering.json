@@ -1,0 +1,36 @@
+{
+  "description": "`storage` gives an app you enroll in its own folder of files for that enrollment, where it keeps its working files and results, and you can read them back.\n\nThe gateway answers `storage` itself (`storage://enrollment`): there is no upstream, and file bytes never pass through it. Each enrollment's files are `{customer_id}/services/{service_id}/{enrollment_id}/` in private UnitySVC storage, so all your files are under your account, grouped by service, then enrollment. A call is a control request (`list`, `get`, `put`, `post`, `delete`) that the backend authorizes against the calling key's `service:storage` grant: it computes the object key itself and answers either a listing or a short-lived presigned URL that the client uses to move the bytes directly to or from storage. Its exports declare two permissions and nothing else: `read` (list, get) and `write` (put, post, delete); `invoke`, and the `service:*` and `*` wildcards that stand for it, never reach `storage`. It has no options: the folder is never chosen by a policy. A key bound to an enrollment reaches only that enrollment's folder, and naming another enrollment is refused. Your own unbound key names the enrollment with the `X-UnitySVC-Enrollment` header and reaches only enrollments it may see. `storage` is not billed while it is experimental.\n\n`POST /storage/list` with `{\"path\": \"results/\"}` and a key whose policy grants `service:storage`, e.g. `{\"object\": \"service:storage\", \"permissions\": [\"read\", \"write\"]}`, lists that folder of the enrollment; an unbound key adds `X-UnitySVC-Enrollment: <code>`. `POST /storage/get` answers a download URL; `POST /storage/put` with `{\"path\", \"content_type\", \"size\"}` (or `POST /storage/post` for a browser form upload) answers an upload ticket, and `POST /storage/delete` removes a file; the last three need `write`. See How to use this service for the request and answer shapes.",
+  "details": {},
+  "exports": {
+    "permissions": {
+      "read": [
+        "POST /list",
+        "POST /get"
+      ],
+      "write": [
+        "POST /put",
+        "POST /post",
+        "POST /delete"
+      ]
+    }
+  },
+  "logo": "https://api.iconify.design/lucide:hard-drive.svg?color=%233B82F6",
+  "name": "storage",
+  "payout_price": {
+    "description": "Not billed (yet): reaching an enrollment's files is free while the service is experimental",
+    "price": "0",
+    "type": "constant"
+  },
+  "service_type": "gateway",
+  "status": "ready",
+  "summary": "Give an app you enroll its own folder of files for the enrollment through `/storage`, which you can read back.",
+  "time_created": "2026-10-27T00:00:00Z",
+  "upstream_access_config": {
+    "default": {
+      "access_method": "http",
+      "auth_mode": "forward",
+      "base_url": "storage://enrollment",
+      "is_active": true
+    }
+  }
+}

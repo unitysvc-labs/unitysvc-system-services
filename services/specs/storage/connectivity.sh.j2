@@ -1,0 +1,35 @@
+#!/bin/bash
+# Connectivity test for storage's canonical interface: the gateway-native
+# storage://enrollment scheme. There is NO seller upstream: the gateway answers
+# itself (through the backend, which authorizes the key's service:storage
+# grant and resolves the enrollment). A listing needs a service:storage grant
+# with read and an enrollment, which a test key need not have, so any of
+# storage's own answers proves the route: 200 with a listing, 403 naming the
+# missing service:storage grant, or 400 asking for the X-UnitySVC-Enrollment
+# header. Nothing is written.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (gateway-native storage://enrollment, no upstream)"
+{% else %}
+URL="{{ service_base_url }}"
+URL="${URL%/}/list"
+
+response=$(curl -sS --max-time 30 \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d '{"path": ""}' \
+    -w "\n%{http_code}" \
+    "$URL" 2>/dev/null)
+status="${response##*$'\n'}"
+body="${response%$'\n'*}"
+
+case "$status" in
+  200) printf '%s' "$body" | grep -q '"folders"' && { echo "connectivity ok — /storage listed"; exit 0; } ;;
+  403) printf '%s' "$body" | grep -q 'service:storage' && { echo "connectivity ok — /storage answered (this key has no service:storage read grant)"; exit 0; } ;;
+  400) printf '%s' "$body" | grep -q 'X-UnitySVC-Enrollment' && { echo "connectivity ok — /storage answered (no enrollment named)"; exit 0; } ;;
+  000) echo "connectivity failed: could not connect to $URL" >&2; exit 1 ;;
+esac
+echo "connectivity failed: HTTP $status from $URL is not storage's own answer: ${body}" >&2
+exit 1
+{% endif %}

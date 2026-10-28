@@ -1,0 +1,46 @@
+import os
+import sys
+
+import httpx
+
+# Write a result to an enrollment's storage, list it, then download it,
+# through the gateway (storage). The bytes go straight to private storage with
+# the presigned URL storage answers; they never pass through the gateway.
+# The key's service:storage grant decides what it may do:
+#   {"object": "service:storage", "permissions": ["read", "write"]}
+# A key bound to an enrollment always reaches that enrollment's folder; your
+# own unbound key names the enrollment with X-UnitySVC-Enrollment.
+{% if local_testing %}
+# storage is gateway-native (storage://enrollment): there is no seller
+# upstream to call in local mode, so this branch only confirms wiring.
+print("storage (skipped: gateway-native storage://enrollment, no upstream)")
+sys.exit(0)
+{% else %}
+base = "{{ service_base_url }}".rstrip("/")
+headers = {"Authorization": f"Bearer {os.environ['UNITYSVC_API_KEY']}"}
+enrollment = os.environ.get("UNITYSVC_ENROLLMENT_CODE")
+if enrollment:
+    headers["X-UnitySVC-Enrollment"] = enrollment
+data = b'{"matched": 3}'
+
+ticket = httpx.post(
+    f"{base}/put",
+    headers=headers,
+    json={"path": "results/summary.json", "content_type": "application/json", "size": len(data)},
+)
+if ticket.status_code in (400, 403, 404):
+    print("set UNITYSVC_ENROLLMENT_CODE and use a key with a service:storage write grant:", ticket.json())
+    sys.exit(0)
+ticket.raise_for_status()
+ticket = ticket.json()
+httpx.put(ticket["url"], headers=ticket["headers"], content=data).raise_for_status()
+
+listing = httpx.post(f"{base}/list", headers=headers, json={"path": "results/"})
+listing.raise_for_status()
+for f in listing.json()["files"]:
+    print(f["path"], f["size"], f["last_modified"])
+
+download = httpx.post(f"{base}/get", headers=headers, json={"path": "results/summary.json"})
+download.raise_for_status()
+print(httpx.get(download.json()["url"]).content.decode())
+{% endif %}

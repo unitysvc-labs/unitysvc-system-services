@@ -1,0 +1,52 @@
+{
+  "currency": "USD",
+  "display_name": "Home",
+  "documents": {
+    "Connectivity test": {
+      "category": "connectivity_test",
+      "description": "POST /home/list with the test key and expect the gateway's own answer",
+      "file_path": "connectivity.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "mime_type": "bash"
+    },
+    "How to use this service": {
+      "category": "getting_started",
+      "description": "Grants, operations, request and answer shapes, direct transfers and limits",
+      "file_path": "home-description.md",
+      "is_active": true,
+      "is_public": true,
+      "mime_type": "markdown"
+    },
+    "Python code example": {
+      "category": "code_example",
+      "description": "Python (httpx): upload a file to your home files with a presigned ticket, list the folder, then download it",
+      "file_path": "code-example.py.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "requirements": [
+          "httpx"
+        ]
+      },
+      "mime_type": "python"
+    }
+  },
+  "list_price": {
+    "description": "Free | your home files is not billed while experimental",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "home",
+  "service_options": {
+    "default_visibility": "private"
+  },
+  "status": "ready",
+  "time_created": "2026-10-27T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "http",
+      "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
+    }
+  }
+}

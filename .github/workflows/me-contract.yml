@@ -5,16 +5,22 @@ on:
     paths:
       - "services/specs/me/**"
       - "services/specs/ai/**"
+      - "services/specs/home/**"
+      - "services/specs/storage/**"
       - "tests/test_me_contract.py"
       - "tests/test_ai_contract.py"
+      - "tests/test_files_contract.py"
       - ".github/workflows/me-contract.yml"
   push:
     branches: [main]
     paths:
       - "services/specs/me/**"
       - "services/specs/ai/**"
+      - "services/specs/home/**"
+      - "services/specs/storage/**"
       - "tests/test_me_contract.py"
       - "tests/test_ai_contract.py"
+      - "tests/test_files_contract.py"
       - ".github/workflows/me-contract.yml"
   workflow_dispatch:
 

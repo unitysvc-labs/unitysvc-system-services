@@ -1,0 +1,42 @@
+import os
+import sys
+
+import httpx
+
+# Upload a file to a folder of your home, list the folder, then download the
+# file, through the gateway (home). The bytes go straight to private storage
+# with the presigned URL home answers; they never pass through the gateway.
+# The key's service:home grant decides what it may do, e.g.
+#   {"object": "service:home", "permissions": ["read", "write"],
+#    "options": "path=inputs/"}
+{% if local_testing %}
+# home is gateway-native (home://customer): there is no seller upstream to
+# call in local mode, so this branch only confirms wiring.
+print("home (skipped: gateway-native home://customer, no upstream)")
+sys.exit(0)
+{% else %}
+base = "{{ service_base_url }}".rstrip("/")
+headers = {"Authorization": f"Bearer {os.environ['UNITYSVC_API_KEY']}"}
+data = b"id,score\n1,0.9\n"
+
+ticket = httpx.post(
+    f"{base}/put",
+    headers=headers,
+    json={"path": "inputs/example.csv", "content_type": "text/csv", "size": len(data)},
+)
+if ticket.status_code == 403:
+    print("this key has no service:home write grant covering inputs/:", ticket.json())
+    sys.exit(0)
+ticket.raise_for_status()
+ticket = ticket.json()
+httpx.put(ticket["url"], headers=ticket["headers"], content=data).raise_for_status()
+
+listing = httpx.post(f"{base}/list", headers=headers, json={"path": "inputs/"})
+listing.raise_for_status()
+for f in listing.json()["files"]:
+    print(f["path"], f["size"], f["last_modified"])
+
+download = httpx.post(f"{base}/get", headers=headers, json={"path": "inputs/example.csv"})
+download.raise_for_status()
+print(httpx.get(download.json()["url"]).content.decode())
+{% endif %}

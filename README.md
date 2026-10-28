@@ -11,6 +11,8 @@ resolves on its own:
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, or the `service:ai` grant's `service` option, then routes it |
 | `me` | `me://user` | projects profile, intents and matching preferences from the routing context within the caller's `service:me` grant; forwards writes to the backend |
 | `log` | `log://enrollment` | records entries in an enrollment's activity log at or above the `service:log` grant's `log_level`; forwards reads to the backend |
+| `home` | `home://customer` | forwards file control calls (list, get, put, post, delete) on the customer's home to the backend, which checks the `service:home` grant's folders and answers listings or presigned URLs; experimental, private |
+| `storage` | `storage://enrollment` | the same for an enrollment's own folder, resolved from the key's enrollment binding; experimental, private |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -209,9 +211,37 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" -H "X-UnitySVC-Enrollment: AB3
 # -> 202 {"accepted": 1, "dropped": 1, "entry_ids": [...]}
 ```
 
+## Home and storage (`home://customer`, `storage://enrollment`)
+
+Customer files as two services (unitysvc/unitysvc#2756), both **experimental**:
+their listings set `service_options.default_visibility` to `private`, so they
+stay out of the catalog, and the Files pages stay behind the experimental flag.
+
+- `home` is the customer's `{customer_id}/home/`. Its `service:home` grant
+  names folders with the `path` option (`path=inputs/,projects/x/`, each
+  relative and ending in `/`; a sole `*` is the whole home, unbound keys only).
+  A customer shares inputs by granting `read` on folders, with no copies.
+- `storage` is one enrollment's `{customer_id}/services/{service_id}/{enrollment_id}/`. It has no
+  options: a bound key reaches its own enrollment, an unbound key names one with
+  `X-UnitySVC-Enrollment`.
+
+Both export `read` (`list`, `get`) and `write` (`put`, `post`, `delete`) and no
+`invoke`. Every call is `POST /<service>/<op>` with a JSON body; the gateway
+checks the permission and forwards it to the backend, which resolves the
+object key from the authenticated key and answers a listing or a short-lived
+presigned URL. Bytes move directly between the client and private storage.
+Neither service is billed yet.
+
+```bash
+# key policy: {"object": "service:home", "permissions": ["read"], "options": "path=inputs/"}
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" -H "Content-Type: application/json" \
+     -d '{"path": "inputs/a.csv"}' "$API_GATEWAY_BASE_URL/home/get"
+# -> {"path": "inputs/a.csv", "url": "https://…", "expires_in": 900}
+```
+
 ## Repository layout
 
-`notify`, `ai`, `email`, `me` and `log` are full specs (`services/specs/<name>/` with `offering.json`,
+`notify`, `ai`, `email`, `me`, `log`, `home` and `storage` are full specs (`services/specs/<name>/` with `offering.json`,
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered
