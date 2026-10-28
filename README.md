@@ -217,11 +217,11 @@ Customer files as two services (unitysvc/unitysvc#2756), both **experimental**:
 their listings set `service_options.default_visibility` to `private`, so they
 stay out of the catalog, and the Files pages stay behind the experimental flag.
 
-- `home` is the customer's `home/{customer_id}/`. Its `service:home` grant
+- `home` is the customer's `{customer_id}/home/`. Its `service:home` grant
   names folders with the `path` option (`path=inputs/,projects/x/`, each
   relative and ending in `/`; a sole `*` is the whole home, unbound keys only).
   A customer shares inputs by granting `read` on folders, with no copies.
-- `storage` is one enrollment's `enrollments/{enrollment_id}/`. It has no
+- `storage` is one enrollment's `{customer_id}/services/{service_id}/{enrollment_id}/`. It has no
   options: a bound key reaches its own enrollment, an unbound key names one with
   `X-UnitySVC-Enrollment`.
 

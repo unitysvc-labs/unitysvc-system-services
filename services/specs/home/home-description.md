@@ -1,6 +1,6 @@
 # How to use Home
 
-`home` is your account's own files: `home/{customer_id}/` in private UnitySVC
+`home` is your account's own files: `{customer_id}/home/` in private UnitySVC
 storage. A personal key uses your personal account and a team key uses the
 team's; an organization's home belongs to the organization, not to one member.
 You share an input with an app by granting it `read` on the folder that holds

@@ -1,8 +1,11 @@
 # How to use Storage
 
-`storage` is an enrollment's own folder of files: `enrollments/{enrollment_id}/`
-in private UnitySVC storage. The app you enrolled keeps its working files and
-results there; you can read them back. Inputs you want to share with the app
+`storage` is an enrollment's own folder of files:
+`{customer_id}/services/{service_id}/{enrollment_id}/`
+in private UnitySVC storage, so all your files sit under your account, grouped
+by service, then enrollment. The app you enrolled keeps its working files and
+results there; you can read them back. Paths in calls are always relative to
+the enrollment's folder (`results/out.json`). Inputs you want to share with the app
 belong in your `home` instead, granted by folder.
 
 `storage` is **experimental**: it is private (not in the catalog) and the Files
