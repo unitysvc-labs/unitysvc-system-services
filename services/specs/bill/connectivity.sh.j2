@@ -1,0 +1,29 @@
+#!/bin/bash
+# Connectivity test for bill's canonical interface: the gateway-native
+# bill://enrollment scheme (unitysvc/unitysvc#2744). There is NO seller
+# upstream. A test must never record or bill a charge, so it only reads:
+# GET /bill needs a key bound to an enrollment whose service:bill grant holds
+# query, which a test key need not have. Any of the gateway's own answers proves
+# the route: 200 with the enrollment's charges, or 403 naming service:bill.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (gateway-native bill://enrollment, no upstream)"
+{% else %}
+URL="{{ service_base_url }}"
+
+response=$(curl -sS --max-time 30 \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY:-}" \
+    -w "\n%{http_code}" \
+    "$URL" 2>/dev/null)
+status="${response##*$'\n'}"
+body="${response%$'\n'*}"
+
+case "$status" in
+  200) printf '%s' "$body" | grep -q '"data"' && { echo "connectivity ok — /bill listed charges"; exit 0; } ;;
+  403) printf '%s' "$body" | grep -q 'service:bill' && { echo "connectivity ok — /bill answered (this key holds no service:bill query grant; nothing recorded)"; exit 0; } ;;
+  000) echo "connectivity failed: could not connect to $URL" >&2; exit 1 ;;
+esac
+echo "connectivity failed: HTTP $status from $URL is not bill's own answer: ${body}" >&2
+exit 1
+{% endif %}

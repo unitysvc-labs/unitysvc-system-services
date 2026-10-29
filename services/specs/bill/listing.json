@@ -1,0 +1,44 @@
+{
+  "currency": "USD",
+  "display_name": "Bill",
+  "documents": {
+    "Connectivity test": {
+      "category": "connectivity_test",
+      "description": "GET /bill with the test key and expect the gateway's own answer, recording nothing",
+      "file_path": "connectivity.sh.j2",
+      "is_active": true,
+      "is_public": true,
+      "mime_type": "bash"
+    },
+    "Python code example": {
+      "category": "code_example",
+      "description": "Python (httpx) example: charge an enrollment through /bill, then list its charges",
+      "file_path": "code-example.py.j2",
+      "is_active": true,
+      "is_public": true,
+      "meta": {
+        "requirements": [
+          "httpx"
+        ]
+      },
+      "mime_type": "python"
+    }
+  },
+  "list_price": {
+    "description": "Free | each charge is priced by the enrollment's own service",
+    "price": "0",
+    "type": "constant"
+  },
+  "name": "bill",
+  "service_options": {
+    "default_visibility": "private"
+  },
+  "status": "ready",
+  "time_created": "2026-10-27T00:00:00Z",
+  "user_access_interfaces": {
+    "canonical": {
+      "access_method": "http",
+      "base_url": "${API_GATEWAY_BASE_URL}/{{ service_name }}"
+    }
+  }
+}

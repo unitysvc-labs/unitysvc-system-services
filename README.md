@@ -11,6 +11,7 @@ resolves on its own:
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, or the `service:ai` grant's `service` option, then routes it |
 | `me` | `me://user` | projects profile, intents and matching preferences from the routing context within the caller's `service:me` grant; forwards writes to the backend |
 | `log` | `log://enrollment` | records entries in the key's activity log (its enrollment's, or the general log) at or above the `service:log` grant's `log_level`; forwards reads to the backend |
+| `bill` | `bill://enrollment` | records a charge against the calling key's enrollment and answers a 202 receipt; the platform bills it at the enrollment's service price; `refund` and `query` through the same front door; private, for testing |
 | `home` | `home://customer` | forwards file control calls (list, get, put, post, delete) on the customer's home to the backend, which checks the `service:home` grant's folders and answers listings or presigned URLs; experimental, private |
 | `storage` | `storage://enrollment` | the same for an enrollment's own folder, resolved from the key's enrollment binding; experimental, private |
 
@@ -213,6 +214,7 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
 # -> 202 {"accepted": 1, "dropped": 1, "entry_ids": [...]}
 ```
 
+<<<<<<< HEAD
 ## Home and storage (`home://customer`, `storage://enrollment`)
 
 Customer files as two services (unitysvc/unitysvc#2756), both **experimental**:
@@ -239,11 +241,42 @@ Neither service is billed yet.
 curl -H "Authorization: Bearer $UNITYSVC_API_KEY" -H "Content-Type: application/json" \
      -d '{"path": "inputs/a.csv"}' "$API_GATEWAY_BASE_URL/home/get"
 # -> {"path": "inputs/a.csv", "url": "https://…", "expires_in": 900}
+=======
+## Bill (`bill://enrollment`)
+
+`bill` lets a seller's app charge a customer per use for work delivered outside
+the gateway (unitysvc/unitysvc#2744). The caller is a key the customer bound to
+one of their enrollments; the charge is billed as `units` of that enrollment's
+own service, at its price, and paid to its seller through the ordinary usage
+pipeline. `bill` moves money, so its `exports` declare three accounting
+permissions and no `invoke`: `charge` (`POST /`), `refund` (`POST /refund`) and
+`query` (`GET /`). Only a key bound to an enrollment may hold a `service:bill`
+grant, so `service:*`, `*` and a customer's own keys never reach it. Its one
+option, `max_units_per_charge`, caps one charge.
+
+The gateway checks the grant, publishes the charge to the usage stream and
+answers `202 {"charge_id", "status": "received"}`: that receipt is the only
+confirmation, and sellers keep their own records. Billing happens in the usage
+consumer shortly after; `GET /bill` lists the enrollment's charges and refunds
+with their status. The same `Idempotency-Key` never bills twice. `bill` itself
+is free. It is a full spec under `services/specs/bill/`.
+
+```bash
+# key bound to the enrollment; policy: {"object": "service:bill", "permissions": ["charge", "query"]}
+curl -H "Authorization: Bearer $BILL_KEY" -H "Idempotency-Key: run-6f1c" \
+     -H "Content-Type: application/json" \
+     -d '{"units": 3, "description": "Run 6f1c"}' "$API_GATEWAY_BASE_URL/bill"
+# -> 202 {"charge_id": "...", "status": "received"}
+>>>>>>> f8fa3e8 (Add the bill service (bill://enrollment): charge/refund/query exports, 202 receipt)
 ```
 
 ## Repository layout
 
+<<<<<<< HEAD
 `notify`, `ai`, `email`, `me`, `log`, `home` and `storage` are full specs (`services/specs/<name>/` with `offering.json`,
+=======
+`notify`, `ai`, `email`, `me`, `log` and `bill` are full specs (`services/specs/<name>/` with `offering.json`,
+>>>>>>> f8fa3e8 (Add the bill service (bill://enrollment): charge/refund/query exports, 202 receipt)
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered
