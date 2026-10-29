@@ -17,7 +17,6 @@
     "type": "revenue_share"
   },
   "service_type": "email",
-  "status": "draft",
   "summary": "Send email to verified account member mailboxes and an optional additional delivery service.",
   "time_created": "2026-10-21T00:00:00Z",
   "upstream_access_config": {
