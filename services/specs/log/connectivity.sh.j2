@@ -1,10 +1,11 @@
 #!/bin/bash
 # Connectivity test for log's canonical interface: the gateway-native
 # log://enrollment scheme. There is NO seller upstream: the gateway answers
-# itself. A read needs a service:log grant with read and an enrollment the key
-# may see, which a test key need not have, so any of the gateway's own answers
-# proves the route: 200 with entries, 403 naming the missing service:log grant,
-# or 400 asking for the X-UnitySVC-Enrollment header.
+# itself. A write records one debug entry in the test key's log (its
+# enrollment's when the key is bound to one, else the account's general log)
+# and needs a service:log grant with write, which a test key need not have, so
+# either of the gateway's own answers proves the route: 202 with the entry
+# accepted, or 403 naming the missing service:log grant.
 set -o pipefail
 
 {% if local_testing %}
@@ -14,15 +15,16 @@ URL="{{ service_base_url }}"
 
 response=$(curl -sS --max-time 30 \
     -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -H "Content-Type: application/json" \
+    -d '{"level":"debug","message":"log connectivity test"}' \
     -w "\n%{http_code}" \
     "$URL" 2>/dev/null)
 status="${response##*$'\n'}"
 body="${response%$'\n'*}"
 
 case "$status" in
-  200) printf '%s' "$body" | grep -q '"data"' && { echo "connectivity ok — /log listed entries"; exit 0; } ;;
-  403) printf '%s' "$body" | grep -q 'service:log' && { echo "connectivity ok — /log answered (this key has no service:log read grant)"; exit 0; } ;;
-  400) printf '%s' "$body" | grep -q 'X-UnitySVC-Enrollment' && { echo "connectivity ok — /log answered (no enrollment named)"; exit 0; } ;;
+  202) printf '%s' "$body" | grep -q '"accepted"' && { echo "connectivity ok — /log recorded the entry"; exit 0; } ;;
+  403) printf '%s' "$body" | grep -q 'service:log' && { echo "connectivity ok — /log answered (this key has no service:log write grant)"; exit 0; } ;;
   000) echo "connectivity failed: could not connect to $URL" >&2; exit 1 ;;
 esac
 echo "connectivity failed: HTTP $status from $URL is not log's own answer: ${body}" >&2

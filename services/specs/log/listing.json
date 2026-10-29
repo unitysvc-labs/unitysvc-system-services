@@ -4,7 +4,7 @@
   "documents": {
     "Connectivity test": {
       "category": "connectivity_test",
-      "description": "GET /log with the test key and expect the gateway's own answer",
+      "description": "POST a debug entry to /log with the test key and expect the gateway's own answer",
       "file_path": "connectivity.sh.j2",
       "is_active": true,
       "is_public": true,
@@ -12,7 +12,7 @@
     },
     "Python code example": {
       "category": "code_example",
-      "description": "Python (httpx) example: record an entry in an enrollment's activity log through /log, then read the log back",
+      "description": "Python (httpx) example: record an entry in the key's activity log through /log, then read the log back",
       "file_path": "code-example.py.j2",
       "is_active": true,
       "is_public": true,

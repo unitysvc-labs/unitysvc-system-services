@@ -10,7 +10,7 @@ resolves on its own:
 | `notify` | `notify://user` | delivers a `msg` envelope to the caller's notification preference |
 | `ai` | `ai://preference` | rewrites `/ai/...` to the caller's AI preference, or the `service:ai` grant's `service` option, then routes it |
 | `me` | `me://user` | projects profile, intents and matching preferences from the routing context within the caller's `service:me` grant; forwards writes to the backend |
-| `log` | `log://enrollment` | records entries in an enrollment's activity log at or above the `service:log` grant's `log_level`; forwards reads to the backend |
+| `log` | `log://enrollment` | records entries in the key's activity log (its enrollment's, or the general log) at or above the `service:log` grant's `log_level`; forwards reads to the backend |
 | `home` | `home://customer` | forwards file control calls (list, get, put, post, delete) on the customer's home to the backend, which checks the `service:home` grant's folders and answers listings or presigned URLs; experimental, private |
 | `storage` | `storage://enrollment` | the same for an enrollment's own folder, resolved from the key's enrollment binding; experimental, private |
 
@@ -190,21 +190,23 @@ The Bash connectivity probe needs `curl` and Python 3 (standard library only).
 
 ## Log (`log://enrollment`)
 
-`log` records what an app did for one of the customer's enrollments in that
-enrollment's activity log (unitysvc/unitysvc#2662, #2720). The enrollment is
-named by the `X-UnitySVC-Enrollment` header. Like `me` it holds the customer's
+`log` records what an app did in the calling key's activity log
+(unitysvc/unitysvc#2662, #2720, #2780). The key decides which log: a key bound
+to an enrollment writes and reads that enrollment's log, an unbound key the
+customer's general log. No header names an enrollment (`log` does not read
+`X-UnitySVC-Enrollment`). Like `me` it holds the customer's
 own data, so its `exports` declare exactly two permissions, `write`
 (`POST /`) and `read` (`GET /`), and no `invoke`: `service:*` and `*` never
 reach it. Its one option, `log_level` (`debug`, `info`, `warn`, `error`;
 default `debug`), is the lowest level a grant records: the gateway drops
 entries below it and reports them as `dropped`. Writes are handled by the
 gateway end to end (Kafka → ClickHouse); reads are forwarded to the backend,
-which lists the enrollment's entries newest first. `log` is not billed. It is a
+which lists the same log's entries newest first. `log` is not billed. It is a
 full spec under `services/specs/log/`.
 
 ```bash
 # key policy: {"object": "service:log", "permissions": ["write"], "options": "log_level=info"}
-curl -H "Authorization: Bearer $UNITYSVC_API_KEY" -H "X-UnitySVC-Enrollment: AB3D9K" \
+curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
      -H "Content-Type: application/json" \
      -d '[{"level":"debug","message":"start"},{"level":"info","message":"Checked 214 listings"}]' \
      "$API_GATEWAY_BASE_URL/log"
