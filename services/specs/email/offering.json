@@ -10,6 +10,7 @@
   },
   "logo": "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets/Mail/SVG/ic_fluent_mail_32_color.svg",
   "name": "email",
+  "status": "ready",
   "payout_price": {
     "description": "No platform commission — delivers to account member mailboxes and the configured email service",
     "percentage": "100.00",

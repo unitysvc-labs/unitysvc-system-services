@@ -35,7 +35,7 @@
     "type": "constant"
   },
   "name": "email",
-  "status": "draft",
+  "status": "ready",
   "time_created": "2026-10-21T00:00:00Z",
   "user_access_interfaces": {
     "canonical": {
