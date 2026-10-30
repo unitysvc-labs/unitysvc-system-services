@@ -2,7 +2,7 @@
   "capabilities": [
     "deliver-message"
   ],
-  "description": "Send an email to the verified mailboxes of the account you're acting for.\n\nThe SMTP gateway delivers to your verified address for an individual account, or to every active team member's verified address for a team. An optional account email preference receives an additional copy through an SMTP-input service; that service can relay mail or convert it to HTTP. Formatting and attachments remain intact on the default email delivery.\n\nAuthenticate to the SMTP gateway with username `email` and your UnitySVC API key. The sender's envelope recipients do not redirect the default mailbox delivery. Configure an email preference on the account when you want an additional delivery.",
+  "description": "Send an email to the verified mailboxes of the account you're acting for.\n\nThe SMTP gateway delivers to your verified address for an individual account, or to every active team member's verified address for a team. An optional account email preference receives an additional copy through an SMTP-input service; that service can relay mail or convert it to HTTP. Formatting and attachments remain intact on the default email delivery. The sender never learns those addresses.\n\nThe simplest way to send is to write to an enrollment address. A seller whose enrollment's approved policy grants `service:email` `invoke` writes to `<enrollment id>@svcpass.com` from its usual mail client, with no SMTP settings, login or API key. The message must come from the verified address of the seller's account manager, DKIM-signed and addressed to that enrollment address, and it stops being delivered when the enrollment ends or the customer removes the grant. Alternatively, authenticate to the SMTP gateway with username `email` and a UnitySVC API key (your own, or one leased for an enrollment); the sender's envelope recipients do not redirect the default mailbox delivery. Configure an email preference on the account when you want an additional delivery.",
   "details": {
     "input_formats": [
       "smtp"
@@ -10,13 +10,13 @@
   },
   "logo": "https://raw.githubusercontent.com/microsoft/fluentui-system-icons/main/assets/Mail/SVG/ic_fluent_mail_32_color.svg",
   "name": "email",
-  "status": "ready",
   "payout_price": {
     "description": "No platform commission — delivers to account member mailboxes and the configured email service",
     "percentage": "100.00",
     "type": "revenue_share"
   },
   "service_type": "email",
+  "status": "ready",
   "summary": "Send email to verified account member mailboxes and an optional additional delivery service.",
   "time_created": "2026-10-21T00:00:00Z",
   "upstream_access_config": {
