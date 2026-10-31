@@ -8,13 +8,12 @@
     "price": "0",
     "type": "constant"
   },
-  "service_type": "gateway",
+  "service_type": "communication",
   "status": "ready",
   "summary": "A free chat room for a group, where every member keeps using their own app.",
   "time_created": "2026-10-30T00:00:00Z",
   "upstream_access_config": {
     "free": {
-      "access_method": "http",
       "customer_access_requests": [
         {
           "justification": "Creates your Commons chat room when you enroll; your account owns it and invites the people you talk with",
