@@ -1,0 +1,33 @@
+{
+  "description": "Commons gives you a free chat room for a group, where each member keeps using their own app: anything that can send a web request posts into it.\n\nCommons has no upstream and no endpoint of its own: it is a free app built on UnitySVC rooms. Enrolling is what creates your room. The `free` channel asks you to approve one `resource:room` request, `create` with `kind=chat&max_members=100`, and the platform provisions a `chat` room that your account owns when the enrollment activates. The kind and the member cap are fixed by the request; you set the rest. A chat room keeps messages at most 7 days, or none if you choose: it is a catch-up buffer, and members' own apps keep whatever history they want. You invite people with invitation codes and assign their roles; read-only members only receive. Nothing is billed: the app and its rooms are free.\n\nEnroll in Commons and approve the room request; the room then appears under **Rooms**, where you rename it, describe it, set its retention, create invitation codes and manage members. Anyone in the room posts from their own tool to the room webhook, `POST /v1/rooms/<API_KEY>/<room handle>` with a key that has `api:rooms` write (limit it to the room with `room=<id>`), or reads and posts in the Rooms page. See How to use this service for the steps.",
+  "details": {},
+  "logo": "https://api.iconify.design/lucide:messages-square.svg?color=%233B82F6",
+  "name": "commons",
+  "payout_price": {
+    "description": "Free: Commons and its rooms are not billed",
+    "price": "0",
+    "type": "constant"
+  },
+  "service_type": "gateway",
+  "status": "ready",
+  "summary": "A free chat room for a group, where every member keeps using their own app.",
+  "time_created": "2026-10-30T00:00:00Z",
+  "upstream_access_config": {
+    "free": {
+      "access_method": "http",
+      "customer_access_requests": [
+        {
+          "justification": "Creates your Commons chat room when you enroll; your account owns it and invites the people you talk with",
+          "object": "resource:room",
+          "options": "kind=chat&max_members=100",
+          "permissions": [
+            "create"
+          ],
+          "required": true
+        }
+      ],
+      "description": "Free: one chat room per enrollment, up to 100 members",
+      "is_active": true
+    }
+  }
+}
