@@ -36,7 +36,8 @@ curl -X POST "https://unitysvc.com/v1/rooms/$UNITYSVC_API_KEY/<room handle>" \
 
 - Use an API key with the `api:rooms` write grant. Limit it to this room (`room=<room id>`) so it can post nowhere else.
 - `<room handle>` is your own handle for the room, shown in Rooms; the room's id works too.
-- The webhook URL with your handle is also shown when you create an API key. On staging, use the staging host instead of `unitysvc.com`.
+- When you create an API key, its dialog shows the webhook URL without a room (`/v1/rooms/<API_KEY>`); add `/<room handle>` to post to this room. Without one, the message goes to your account's private `me` room.
+- On staging, use the staging host instead of `unitysvc.com`.
 
 You can also read and post in the Rooms page itself.
 

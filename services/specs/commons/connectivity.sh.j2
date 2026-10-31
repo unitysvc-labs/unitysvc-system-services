@@ -4,7 +4,9 @@
 # unitysvc/unitysvc#2830), and members use the platform's rooms API and room
 # webhook. So the probe is the rooms API itself: list the key's chat rooms.
 # 200 with a room list proves it; 403 means this key has no api:rooms grant,
-# which is still the rooms API's own answer. Nothing is written.
+# which is still the rooms API's own answer. Nothing is written. Set
+# UNITYSVC_API_URL to the customer API of the platform under test
+# (https://api.staging.unitysvc.com/v1 on staging); it defaults to production.
 set -o pipefail
 
 {% if local_testing %}
