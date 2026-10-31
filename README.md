@@ -14,6 +14,7 @@ resolves on its own:
 | `bill` | `bill://enrollment` | records a charge against the calling key's enrollment and answers a 202 receipt; the platform bills it at the enrollment's service price; `refund` and `query` through the same front door; private, for testing |
 | `home` | `home://customer` | forwards file control calls (list, get, put, post, delete) on the customer's home to the backend, which checks the `service:home` grant's folders and answers listings or presigned URLs; experimental, private |
 | `storage` | `storage://enrollment` | the same for an enrollment's own folder, resolved from the key's enrollment binding; experimental, private |
+| `commons` | none (`resource:room`) | nothing: enrolling creates a chat room the customer owns and manages under Rooms; free, private until room provisioning ships |
 
 This repository was `unitysvc-services-resp`; `notify` moved here from
 `unitysvc/unitysvc-services-notify`, which keeps the `msg-to-*` / `*-relay`
@@ -214,7 +215,6 @@ curl -H "Authorization: Bearer $UNITYSVC_API_KEY" \
 # -> 202 {"accepted": 1, "dropped": 1, "entry_ids": [...]}
 ```
 
-<<<<<<< HEAD
 ## Home and storage (`home://customer`, `storage://enrollment`)
 
 Customer files as two services (unitysvc/unitysvc#2756), both **experimental**:
@@ -241,7 +241,8 @@ Neither service is billed yet.
 curl -H "Authorization: Bearer $UNITYSVC_API_KEY" -H "Content-Type: application/json" \
      -d '{"path": "inputs/a.csv"}' "$API_GATEWAY_BASE_URL/home/get"
 # -> {"path": "inputs/a.csv", "url": "https://…", "expires_in": 900}
-=======
+```
+
 ## Bill (`bill://enrollment`)
 
 `bill` lets a seller's app charge a customer per use for work delivered outside
@@ -267,16 +268,15 @@ curl -H "Authorization: Bearer $BILL_KEY" -H "Idempotency-Key: run-6f1c" \
      -H "Content-Type: application/json" \
      -d '{"units": 3, "description": "Run 6f1c"}' "$API_GATEWAY_BASE_URL/bill"
 # -> 202 {"charge_id": "...", "status": "received"}
->>>>>>> f8fa3e8 (Add the bill service (bill://enrollment): charge/refund/query exports, 202 receipt)
 ```
+
+## Commons (`resource:room`)
+
+Commons is a free app for a group chat where each member keeps using their own app (unitysvc/unitysvc#2823). It has no upstream and no user access interface: its one channel, `free`, asks the customer to approve a `resource:room` request (`create`, `kind=chat&max_members=100`), and the platform creates a customer-owned `chat` room when the enrollment activates (unitysvc/unitysvc#2830). The kind and member cap are fixed by the request (unitysvc/unitysvc#2831). The room then appears in the customer's Rooms menu, where the owner manages it; a chat room keeps messages at most 7 days. Members post from their own tools to the room webhook with an `api:rooms` key. Commons is free and private until rooms are provisioned on enrollment. It is a full spec under `services/specs/commons/`.
 
 ## Repository layout
 
-<<<<<<< HEAD
-`notify`, `ai`, `email`, `me`, `log`, `home` and `storage` are full specs (`services/specs/<name>/` with `offering.json`,
-=======
-`notify`, `ai`, `email`, `me`, `log` and `bill` are full specs (`services/specs/<name>/` with `offering.json`,
->>>>>>> f8fa3e8 (Add the bill service (bill://enrollment): charge/refund/query exports, 202 receipt)
+`notify`, `ai`, `email`, `me`, `log`, `bill`, `home`, `storage` and `commons` are full specs (`services/specs/<name>/` with `offering.json`,
 `listing.json`, `provider.json` and their docs). The six `resp` services are
 nearly identical — they differ only in an HTTP `status`, a
 `label`, and a one-line `blurb` — so they're authored as **param files** rendered

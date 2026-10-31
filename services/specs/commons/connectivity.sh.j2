@@ -1,0 +1,32 @@
+#!/bin/bash
+# Connectivity test for Commons. Commons has no upstream and no user access
+# interface: enrolling provisions a chat room (a resource:room grant,
+# unitysvc/unitysvc#2830), and members use the platform's rooms API and room
+# webhook. So the probe is the rooms API itself: list the key's chat rooms.
+# 200 with a room list proves it; 403 means this key has no api:rooms grant,
+# which is still the rooms API's own answer. Nothing is written. Set
+# UNITYSVC_API_URL to the customer API of the platform under test
+# (https://api.staging.unitysvc.com/v1 on staging); it defaults to production.
+set -o pipefail
+
+{% if local_testing %}
+echo "connectivity ok (Commons is platform-backed: no upstream to test)"
+{% else %}
+API="${UNITYSVC_API_URL:-https://api.unitysvc.com/v1}"
+URL="${API%/}/customer/rooms?kind=chat"
+
+response=$(curl -sS --max-time 30 \
+    -H "Authorization: Bearer ${UNITYSVC_API_KEY}" \
+    -w "\n%{http_code}" \
+    "$URL" 2>/dev/null)
+status="${response##*$'\n'}"
+body="${response%$'\n'*}"
+
+case "$status" in
+  200) printf '%s' "$body" | grep -q '"data"' && { echo "connectivity ok — the rooms API listed this key's chat rooms"; exit 0; } ;;
+  403) printf '%s' "$body" | grep -q 'api:rooms' && { echo "connectivity ok — the rooms API answered (this key has no api:rooms grant)"; exit 0; } ;;
+  000) echo "connectivity failed: could not connect to $URL" >&2; exit 1 ;;
+esac
+echo "connectivity failed: HTTP $status from $URL is not the rooms API's answer: ${body}" >&2
+exit 1
+{% endif %}
